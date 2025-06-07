@@ -10,8 +10,8 @@ OPENROUTER_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 
-GOOGLE_API_KEY = "Get Your own"
-GOOGLE_CSE_ID = "Get Your own"
+GOOGLE_API_KEY = "Get your own"
+GOOGLE_CSE_ID = "Get your own"
 
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:
@@ -29,7 +29,7 @@ def get_llm_enhancement(topic, existing_roadmap_str):
     The roadmap should be structured in a way that it can be followed step by step, starting from the basics and
     progressing to advanced topics. The roadmap should be comprehensive and cover all aspects of the topic.
     The output should be a list of bullet points only, each representing a topic or subtopic.
-    
+    Excluding the existing roadmap, there should not be more than 20 items in the roadmap.
     Topic is: {topic}"""
 
     if existing_roadmap_str:
@@ -49,8 +49,8 @@ def get_llm_enhancement(topic, existing_roadmap_str):
     payload = {
         "model": OPENROUTER_MODEL,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 1500,
-        "temperature": 0.4,
+        "max_tokens": 2500,
+        "temperature": 0.55,
     }
     
     try:
@@ -59,6 +59,9 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         result = response.json()
+
+        output_json = json.dumps({"content": result['choices'][0]['message']['content']}, indent=2)
+
         content = result['choices'][0]['message']['content'].strip()
         
         enhancements = []
@@ -69,7 +72,7 @@ def get_llm_enhancement(topic, existing_roadmap_str):
             elif stripped_line:
                 enhancements.append(stripped_line)
         
-        return enhancements[:15]
+        return enhancements
         
     except requests.exceptions.Timeout:
         print("LLM enhancement failed: The request timed out.")
@@ -139,19 +142,21 @@ def generate_tutorial_article(main_topic, sub_topic, search_enabled=True):
 
     prompt = f"""You are an expert educator and content creator.
     
-    Generate a comprehensive, tutorial-style article for the topic: "{sub_topic}".
+    Generate a detailed and verbose, tutorial-style article for the topic: "{sub_topic}".
     This topic is part of a larger learning path on "{main_topic}".
     
     The article should:
     1. Start with the absolute basics of "{sub_topic}".
     2. Progress step-by-step to intermediate and advanced concepts related to "{sub_topic}".
-    3. Explain core concepts clearly and concisely.
-    4. Include practical examples or analogies where appropriate.
+    3. Explain core concepts clearly and with great detail.
+    4. Include practical examples or analogies or code where appropriate or necessary.
     5. Be structured with headings and subheadings (using Markdown: #, ##, ###).
     6. Cover essential techniques, tools, and best practices.
-    7. Conclude with resources for further learning (e.g., 'Further Reading').
+    7. Be suitable for someone with no prior knowledge of the topic.
+    8. Further reading section must include important and useful links for resources like articles, documentations, or other text resources about {sub_topic}.
+
     
-    Focus on providing actionable knowledge for someone looking to learn this topic thoroughly.
+    Focus on providing more actionable knowledge for someone looking to learn this topic thoroughly.
     {search_context}
     Please ensure the content flows logically from simple to complex.
     """
@@ -165,7 +170,7 @@ def generate_tutorial_article(main_topic, sub_topic, search_enabled=True):
     payload = {
         "model": OPENROUTER_MODEL,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 5000,
+        "max_tokens": 6000,
         "temperature": 0.7, 
     }
 
@@ -318,3 +323,8 @@ if __name__ == "__main__":
 #<script async src="https://cse.google.com/cse.js?cx=c582d02e4976d4989">
 #</script>
 #<div class="gcse-search"></div>
+
+
+
+# Note: TO ACCESS ROADMAP OUTPUT IN JSON FORMAT 👇.
+# USE VARIABLE "output_json" IN THE get_llm_enhancement FUNCTION UNDER THE TRY BLOCK. 
