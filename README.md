@@ -1,4 +1,30 @@
-# Getting Started with Create React App
+# Pathwise
+
+Pathwise is a web application that helps users create personalized learning roadmaps for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
+
+## Features
+- None yet, just placeholder for layout purposes right now
+- 
+### Prerequisites
+- Node.js (v18 or later ideally)
+- npm
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/crowaltz24/pathwise.git
+   cd pathwise
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+<!-- # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
@@ -43,4 +69,4 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+To learn React, check out the [React documentation](https://reactjs.org/). -->

@@ -1,13 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom, #fdf6e3, #f5e6ca);
+  color: #333;
+  box-sizing: border-box;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  padding: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid-cols-3 {
+  grid-template-columns: 1fr 2fr 1fr;
+}
+
+.grid-rows-2 {
+  grid-template-rows: 1fr 1fr;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+aside {
+  background: linear-gradient(135deg, #f4f4f4, #e9ecef);
+  border-right: 2px solid #ddd;
+  padding: 1.5rem;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+}
+
+aside h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+aside ul li {
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+main {
+  background-color: #ffffff;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+main h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #212529;
+}
+
+main p {
+  line-height: 1.6;
+  color: #495057;
+}
+
+.notes {
+  background: linear-gradient(135deg, #f9f9f9, #e9ecef);
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notes h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.notes div {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chatbot {
+  background-color: #ffffff;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chatbot h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.chatbot p {
+  line-height: 1.6;
+  color: #495057;
+}
+
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+}
+
+.get-started-btn {
+  background: #333;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.get-started-btn:hover {
+  background: #555;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.description {
+  text-align: center;
+  max-width: 600px;
+  margin-bottom: 2rem;
+  font-family: 'Gloria Hallelujah', cursive;
+}
+
+.description h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.description p {
+  font-size: 1.5rem;
+  color: #555;
+}
+
+.input-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.topic-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.topic-input:focus {
+  outline: none;
+  border-color: #333;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.generate-btn {
+  width: 100%;
+  background: #333;
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.generate-btn:hover {
+  background: #555;
+}
+
+.footer {
+  background: #fff;
+  text-align: center;
+  padding: 1.5rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+}
+
+.footer-link {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #555;
 }
