@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
-
-// supabase init
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL!,
-  process.env.REACT_APP_SUPABASE_ANON_KEY!
-);
+import supabase from '../supabaseClient'; // USE SHARED CLIENT to avoid Multiple GoTrueClient instance error
 
 function LandingPage() {
   const [topic, setTopic] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [retypePassword, setRetypePassword] = useState(''); // New state for retype password
   const [username, setUsername] = useState('');
   const [isSignUp, setIsSignUp] = useState(true);
   const [loggedInUsername, setLoggedInUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // dropdown state RMB THIS
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [roadmap, setRoadmap] = useState<string[] | null>(null); // roadmap state RMB THIS
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const navigate = useNavigate();
@@ -33,11 +29,33 @@ function LandingPage() {
     fetchUser();
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!loggedInUsername) {
       setIsModalOpen(true); // if not logged in
     } else if (topic.trim()) {
-      navigate('/main', { state: { topic } });
+      try {
+        setLoading(true);
+        const response = await fetch('http://127.0.0.1:5000/generate-roadmap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ topic }), // the topic as JSON
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate roadmap');
+        }
+
+        const data = await response.json();
+        console.log('Backend Response:', data);
+        setRoadmap(data.roadmap);
+        console.log('Generated Roadmap:', data.roadmap); // for debugging
+      } catch (error) {
+        console.error('Error generating roadmap:', error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -47,6 +65,11 @@ function LandingPage() {
     setMessageType('');
     try {
       if (isSignUp) {
+        if (password !== retypePassword) {
+          setMessage('Passwords do not match.');
+          setMessageType('error');
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -95,8 +118,15 @@ function LandingPage() {
     setIsModalOpen(false);
     setEmail('');
     setPassword('');
+    setRetypePassword(''); // Clear retype password
     setUsername('');
-    setMessage('');
+    setMessage(''); // Clear success or failure message
+    setMessageType('');
+  };
+
+  const toggleAuthMode = () => {
+    setIsSignUp(!isSignUp);
+    setMessage(''); // Clear success or failure message
     setMessageType('');
   };
 
@@ -146,28 +176,29 @@ function LandingPage() {
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, handleSubmit)}
+            onKeyDown={(e) => handleKeyDown(e, handleSubmit)} // handleSubmit is the action
             placeholder="Enter your topic..."
             className="topic-input"
           />
-          <button onClick={handleSubmit} className="generate-btn">
-            Generate Roadmap
+          <button onClick={handleSubmit} className="generate-btn" disabled={loading}>
+            {loading ? 'Generating...' : 'Generate Roadmap'}
           </button>
         </div>
+        {roadmap && (
+          <div className="roadmap-output">
+            <h3>Generated Roadmap:</h3>
+            <ul>
+              {roadmap.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </main>
 
       {/* footer */}
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Pathwise. All rights reserved.</p>
-        <p>
-          <a href="#" className="footer-link">
-            Privacy Policy
-          </a>{' '}
-          |{' '}
-          <a href="#" className="footer-link">
-            Terms of Service
-          </a>
-        </p>
       </footer>
 
       {/* login/signup */}
@@ -179,13 +210,15 @@ function LandingPage() {
             </button>
             <h2>{isSignUp ? 'Sign Up' : 'Log In'}</h2>
             {isSignUp && (
-              <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="auth-input"
-              />
+              <>
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="auth-input"
+                />
+              </>
             )}
             <input
               type="email"
@@ -203,6 +236,15 @@ function LandingPage() {
               onKeyDown={(e) => handleKeyDown(e, handleAuth)}
               className="auth-input"
             />
+            {isSignUp && (
+              <input
+                type="password"
+                placeholder="Retype Password"
+                value={retypePassword}
+                onChange={(e) => setRetypePassword(e.target.value)}
+                className="auth-input"
+              />
+            )}
             <button onClick={handleAuth} className="auth-btn" disabled={loading}>
               {loading ? <span className="spinner"></span> : isSignUp ? 'Sign Up' : 'Log In'}
             </button>
@@ -211,7 +253,7 @@ function LandingPage() {
                 {messageType === 'success' ? '✓' : '✗'} {message}
               </p>
             )}
-            <p onClick={() => setIsSignUp(!isSignUp)} className="toggle-auth">
+            <p onClick={toggleAuthMode} className="toggle-auth">
               {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
             </p>
           </div>

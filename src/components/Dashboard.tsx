@@ -1,11 +1,6 @@
 import React from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL!,
-  process.env.REACT_APP_SUPABASE_ANON_KEY!
-);
+import supabase from '../supabaseClient'; // USE SHARED CLIENT to avoid Multiple GoTrueClient instance error
 
 function Dashboard() {
   const [username, setUsername] = React.useState('User');
@@ -13,7 +8,7 @@ function Dashboard() {
 
   React.useEffect(() => {
     const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUsername(data.user.user_metadata?.username || 'User');
       }
