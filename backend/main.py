@@ -3,9 +3,7 @@ import re
 import os
 import requests
 import json
-import time
 from dotenv import load_dotenv
-
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -27,11 +25,13 @@ def get_llm_enhancement(topic, existing_roadmap_str):
     - Include concepts, techniques, and any relevant material essential for proficiency.
     - Be structured step-by-step, starting from the basics and progressing to advanced topics.
     - Be comprehensive and cover all aspects of the topic.
-    - Exclude any unnecessary explanations or descriptions.
     - Be formatted as a JSON array of strings, where each string represents a numbered topic or subtopic.
+    - ENSURE THAT SUBTOPICS ARE INDENTED PROPERLY to visually distinguish them from main topics.
     - Contain between 8 and 20 items in the roadmap, depending on the complexity of the topic.
+    - If the topic is inappropriate, invalid, or cannot have a meaningful roadmap, return a JSON object with an "error" key and a descriptive error message.
+    - DO NOT include any commentary, explanations, or additional text outside the JSON response.
 
-    Example output:
+    Example output for a valid topic:
     [
         "1. Introduction to {topic}",
         "2. Core Concepts",
@@ -40,6 +40,11 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         "3. Advanced Techniques",
         "   3.1 Subtopic 3"
     ]
+
+    Example output for an invalid topic:
+    {{
+        "error": "The topic '{topic}' is inappropriate or cannot have a meaningful roadmap."
+    }}
 
     Topic: {topic}"""
 
@@ -72,22 +77,25 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         result = response.json()
 
         content = result['choices'][0]['message']['content'].strip()
-        print(f"LLM Response: {content}")
+        print(f"LLM Raw Response: {content}")  # debugging
 
         try:
-            enhancements = json.loads(content)
-            if isinstance(enhancements, list) and all(isinstance(item, str) for item in enhancements):
-                return enhancements
+            parsed_response = json.loads(content)
+            if isinstance(parsed_response, list) and all(isinstance(item, str) for item in parsed_response):
+                return parsed_response
+            elif isinstance(parsed_response, dict) and "error" in parsed_response:
+                return {"error": parsed_response["error"]}
             else:
-                print("Error: LLM response is not a valid JSON array of strings.")
-                return []
+                print("Error: LLM response is not a valid JSON format.")
+                return {"error": "Unexpected response format from the AI. Please try again later."}
         except json.JSONDecodeError:
-            print("Error: LLM response is not valid JSON.")
-            return []
+            print("Error: Failed to parse the AI response as JSON.")
+            print(f"Raw Response: {content}")  # debugging
+            return {"error": "Failed to parse the AI response. Please try again later."}
 
     except requests.exceptions.RequestException as e:
         print(f"Error: LLM request failed - {e}")
-        return []
+        return {"error": "Failed to connect to the AI service. Please try again later."}
 
 def Google_Search(query):
     """Performs a Google Custom Search and returns snippet results."""
@@ -241,32 +249,12 @@ def generate_learning_roadmap(topic):
     """
     Generates a learning roadmap for the given topic using the LLM.
     """
-    # Previous implementation using Wikipedia API
-    # base_roadmap = get_wikipedia_roadmap(topic.replace(" ", "_"))
-    # existing_roadmap_for_llm = "\n".join(base_roadmap) if base_roadmap else ""
-    #
-    # enhancements = []
-    # if OPENROUTER_API_KEY:
-    #     enhancements = get_llm_enhancement(topic, existing_roadmap_for_llm)
-    #
-    # final_roadmap = base_roadmap or []
-    # if enhancements:
-    #     if not base_roadmap:
-    #         final_roadmap = enhancements
-    #     else:
-    #         final_roadmap.append("- Modern & Advanced Topics (LLM-Enhanced)")
-    #         final_roadmap.extend([f"  - {item}" for item in enhancements if item not in final_roadmap])
-    #
-    # return final_roadmap
-
-    # using only LLM
     if not OPENROUTER_API_KEY:
         raise ValueError("OpenRouter API Key not found. Please set OPENROUTER_API_KEY environment variable.")
 
-    print(f"Generating roadmap for topic: {topic}")
+    print(f"Generating roadmap for topic: {topic}") # debugging
 
-
-    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # no existing roadmap is passed
+    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # existing roadmap not passed
 
     if not enhancements:
         print(f"Error: LLM failed to generate a roadmap for topic: {topic}")
@@ -275,3 +263,26 @@ def generate_learning_roadmap(topic):
     final_roadmap = enhancements
     print(f"Generated roadmap: {final_roadmap}")
     return final_roadmap
+
+# EXAMPLE
+# from flask import Flask, request, jsonify
+
+# app = Flask(__name__)
+
+# @app.route('/generate-roadmap', methods=['POST'])
+# def generate_roadmap_endpoint():
+#     data = request.json
+#     topic = data.get('topic', '')
+
+#     if not topic:
+#         return jsonify({'error': 'Topic is required'}), 400
+
+#     try:
+#         roadmap = generate_learning_roadmap(topic)
+#         return jsonify({'roadmap': roadmap})
+#     except Exception as e:
+#         print(f"Error generating roadmap: {e}")
+#         return jsonify({'error': 'Failed to generate roadmap'}), 500
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
