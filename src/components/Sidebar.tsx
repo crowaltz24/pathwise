@@ -1,17 +1,108 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Circle, ArrowRight } from 'lucide-react';
+import supabase from '../supabaseClient';
 
-function Sidebar({ className, roadmap, loading }: { className?: string; roadmap: string[] | null; loading: boolean }) {
-  const handleSectionClick = (section: string) => {
-    alert(`You clicked on: ${section.trim()}`);
-    // I'LL ADD THE LOGIC TO GENERATE THE CONTENT IN THE MAIN CONTENT AREA LATER
+function Sidebar({
+  className,
+  roadmap,
+  loading,
+  onContentUpdate,
+  roadmapId,
+  topic, // topic as prop
+}: {
+  className?: string;
+  roadmap: string[] | null;
+  loading: boolean;
+  onContentUpdate: (section: string, content: string) => void;
+  roadmapId: string | null;
+  topic: string;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState<boolean>(false);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null); // tracking the selected section
+
+  const handleSectionClick = async (section: string) => {
+    try {
+      if (!roadmapId) {
+        setError('Roadmap ID is missing.');
+        setShowError(true);
+        return;
+      }
+
+      onContentUpdate(section, '');
+      setSelectedSection(section); // highlight selected section
+
+      // fetch roadmap content from Supabase
+      const { data: roadmapData, error: fetchError } = await supabase
+        .from('roadmaps')
+        .select('content')
+        .eq('id', roadmapId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching content:', fetchError);
+        setError('Failed to fetch content. Please try again.');
+        setShowError(true);
+        return;
+      }
+
+      const existingContent = roadmapData?.content || {};
+      if (existingContent[section]) {
+        // update cause content exists
+        onContentUpdate(section, existingContent[section]);
+        return;
+      }
+
+      // otherwise we generate new
+      const response = await fetch('http://127.0.0.1:5000/generate-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          section,
+          main_topic: roadmap?.[0] || 'Unknown Topic', 
+          roadmap, // pass the entire roadmap
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate content.');
+      }
+
+      const { content } = await response.json();
+
+      // save generated content to Supabase
+      const updatedContent = { ...existingContent, [section]: content };
+      const { error: updateError } = await supabase
+        .from('roadmaps')
+        .update({ content: updatedContent })
+        .eq('id', roadmapId);
+
+      if (updateError) {
+        console.error('Error saving content:', updateError);
+        setError('Failed to save content. Please try again.');
+        setShowError(true);
+        return;
+      }
+
+      // UPDATE CONTENT AREA
+      onContentUpdate(section, content);
+    } catch (error) {
+      console.error('Error handling section click:', error);
+      setError('An unexpected error occurred. Please try again.');
+      setShowError(true);
+    }
   };
 
   return (
     <aside className={`bg-gray-100 p-4 border-r h-full ${className}`}>
       <h2
         className="text-lg font-bold mb-4 text-center"
-        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
+        style={{
+          fontFamily: 'Gloria Hallelujah, cursive',
+          fontSize: '1.5rem',
+        }}
       >
         Your Path
       </h2>
@@ -25,10 +116,13 @@ function Sidebar({ className, roadmap, loading }: { className?: string; roadmap:
             roadmap.map((item, index) => {
               const isSubtopic = item.startsWith('  '); // check if subtopic
               const indentLevel = (item.match(/^ +/)?.[0].length || 0) / 2; // calculate indentation level
+              const isSelected = selectedSection === item; // check if the section is selected
               return (
                 <div
                   key={index}
-                  className={`flowchart-item flex items-center cursor-pointer`}
+                  className={`flowchart-item flex items-center cursor-pointer ${
+                    isSelected ? 'selected-section' : ''  // because it needs special styling
+                  }`}
                   style={{
                     marginLeft: `${indentLevel * 1.5}rem`, // indent based on level
                   }}
@@ -36,9 +130,9 @@ function Sidebar({ className, roadmap, loading }: { className?: string; roadmap:
                 >
                   <div className="icon-container flex items-center justify-center mr-2">
                     {isSubtopic ? (
-                      <Circle className="text-gray-400" size={16} /> // subtopic icon
-                    ):(
-                      <ArrowRight className="text-blue-500" size={16} /> // main topic icon
+                      <Circle className={`text-gray-400 ${isSelected ? 'text-blue-500' : ''}`} size={16} /> // subtopic icon
+                    ) : (
+                      <ArrowRight className={`text-blue-500 ${isSelected ? 'text-blue-700' : ''}`} size={16} /> // main topic icon
                     )}
                   </div>
                   <div
@@ -46,7 +140,9 @@ function Sidebar({ className, roadmap, loading }: { className?: string; roadmap:
                       isSubtopic
                         ? 'text-sm text-gray-600 bg-gray-200 hover:bg-gray-300'
                         : 'text-base font-medium bg-blue-100 hover:bg-blue-200'
-                    } p-3 rounded-lg shadow-md transition-all w-full`}
+                    } p-3 rounded-lg shadow-md transition-all w-full ${
+                      isSelected ? 'selected-content' : ''
+                    }`}
                   >
                     {item.trim()}
                   </div>
@@ -56,6 +152,18 @@ function Sidebar({ className, roadmap, loading }: { className?: string; roadmap:
           ) : (
             <p className="text-gray-500">No roadmap generated yet.</p>
           )}
+        </div>
+      )}
+
+      {/* error popup */}
+      {error && (
+        <div
+          className={`absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-md transition-opacity duration-500 ${
+            showError ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ zIndex: 1000 }}
+        >
+          {error}
         </div>
       )}
     </aside>

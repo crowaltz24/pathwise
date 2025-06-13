@@ -4,6 +4,8 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -12,6 +14,9 @@ OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+
+app = Flask(__name__)
+CORS(app)  # CORS for all routes
 
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:
@@ -128,61 +133,70 @@ def Google_Search(query):
         print(f"An unexpected error occurred during Google Search: {e}")
         return []
 
-def generate_tutorial_article(main_topic, sub_topic, search_enabled=True):
+def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=True):
     """
-    Generates a tutorial-style article for a given sub-topic.
+    Generates a learning guide-style article for a given sub-topic.
     Optionally incorporates web search results for freshness.
     """
     if not OPENROUTER_API_KEY:
         return "Error: OpenRouter API key not set."
 
-    print(f"  Generating tutorial for: {sub_topic} (under {main_topic})...")
+    print(f"Generating content for sub-topic: {sub_topic} (under main topic: {main_topic})...")
 
     search_context = ""
     if search_enabled and (GOOGLE_API_KEY and GOOGLE_CSE_ID):
         sub_topic = sub_topic.replace("*", "")
-        search_query = f"{sub_topic} {main_topic} tutorial"
-        print(f" Performing web search for: {search_query}")
+        search_query = f"{sub_topic} {main_topic} guide"
+        print(f"Performing web search for: {search_query}")
         snippets = Google_Search(search_query)
-        print(f" Found {len(snippets)} relevant snippets. ")
-        print(" Snippets:", snippets)
+        print(f"Found {len(snippets)} relevant snippets.")
+        print("Snippets:", snippets)
         if snippets:
             search_context = "\n\nRelevant web search results:\n" + "\n".join(snippets) + "\n\n"
         else:
             print("No useful web search results found.")
 
     prompt = f"""You are an expert educator and content creator.
-    
-    Generate a detailed and verbose, tutorial-style article for the topic: "{sub_topic}".
-    This topic is part of a larger learning path on "{main_topic}".
-    
-    The article should:
-    1. Start with the absolute basics of "{sub_topic}".
-    2. Progress step-by-step to intermediate and advanced concepts related to "{sub_topic}".
-    3. Explain core concepts clearly and with great detail.
-    4. Include practical examples or analogies or code where appropriate or necessary.
-    5. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use lists and codeblocks if necessary.
-    6. Cover essential techniques, tools, and best practices.
-    7. Be suitable for someone with no prior knowledge of the topic.
-    8. Further reading section must include important and useful links for resources like articles, documentations, or other text resources about {sub_topic}.
 
+    Generate a detailed learning guide for the sub-topic: "{sub_topic}".
+    This sub-topic is part of a larger learning roadmap on "{main_topic}".
     
-    Focus on providing more actionable knowledge for someone looking to learn this topic thoroughly.
+    The roadmap for this topic is as follows:
+    {roadmap}
+
+    IMPORTANT:
+    - Do NOT preemptively generate detailed content for future sub-topics in the roadmap.
+    - You may briefly mention future sub-topics to provide context, but leave their detailed content for their respective articles.
+    - Focus ONLY on the sub-topic "{sub_topic}".
+    - Ensure the content is specific to the main topic "{main_topic}" to avoid irrelevant information.
+
+    The guide should:
+    1. Start with the basics of "{sub_topic}".
+    2. Progress step-by-step to intermediate and advanced concepts related to "{sub_topic}".
+    3. Avoid tutorial-like language such as "In this article, we will guide you...".
+    4. Use direct and concise language like "You're about to learn..." or "Here, you'll explore...".
+    5. Avoid unnecessary references to the user and focus on delivering actionable knowledge.
+    6. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use lists and code blocks and any other formatting and beautification if necessary.
+    7. Cover essential techniques, tools, good practices, and any relevant material for mastering "{sub_topic}".
+    8. Ensure the content is comprehensive, covering all relevant aspects of "{sub_topic}" and NOT beyond it.
+    9. Provide further reading suggestions and resources at the end of the article, as well as links to them.
+
     {search_context}
-    Please ensure the content flows logically from simple to complex.
+
+    The article should be well-structured, informative, and engaging. Please ensure the content flows logically.
     """
-    
+
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
         "X-Title": "RoadmapTutorialGenerator"
     }
-    
+
     payload = {
         "model": OPENROUTER_MODEL,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 6000,
-        "temperature": 0.7, 
+        "temperature": 0.7,
     }
 
     try:
@@ -192,15 +206,15 @@ def generate_tutorial_article(main_topic, sub_topic, search_enabled=True):
         article_content = result['choices'][0]['message']['content'].strip()
         return article_content
     except requests.exceptions.Timeout:
-        print(f"  Tutorial generation for '{sub_topic}' failed: The request timed out.")
+        print(f"Content generation for '{sub_topic}' failed: The request timed out.")
         return "Error: LLM request timed out."
     except requests.exceptions.RequestException as e:
-        print(f"  Tutorial generation for '{sub_topic}' failed (Request Exception): {str(e)}")
+        print(f"Content generation for '{sub_topic}' failed (Request Exception): {str(e)}")
         if hasattr(e, 'response') and e.response is not None:
-            print(f"  Response content: {e.response.text}")
+            print(f"Response content: {e.response.text}")
         return "Error: LLM request failed."
     except Exception as e:
-        print(f"  An unexpected error occurred during tutorial generation for '{sub_topic}': {str(e)}")
+        print(f"An unexpected error occurred during content generation for '{sub_topic}': {str(e)}")
         return "Error: An unexpected error occurred."
 
 
@@ -254,7 +268,7 @@ def generate_learning_roadmap(topic):
 
     print(f"Generating roadmap for topic: {topic}") # debugging
 
-    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # existing roadmap not passed
+    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # existing roadmap not passed (i removed wikipedia for roadmap)
 
     if not enhancements:
         print(f"Error: LLM failed to generate a roadmap for topic: {topic}")
@@ -264,25 +278,32 @@ def generate_learning_roadmap(topic):
     print(f"Generated roadmap: {final_roadmap}")
     return final_roadmap
 
-# EXAMPLE
-# from flask import Flask, request, jsonify
+@app.route('/generate-roadmap', methods=['POST'])
+def generate_roadmap_endpoint():
+    data = request.json
+    topic = data.get('topic', '')
 
-# app = Flask(__name__)
+    if not topic:
+        return jsonify({'error': 'Topic is required'}), 400
 
-# @app.route('/generate-roadmap', methods=['POST'])
-# def generate_roadmap_endpoint():
-#     data = request.json
-#     topic = data.get('topic', '')
+    try:
+        roadmap = generate_learning_roadmap(topic)
+        return jsonify({'roadmap': roadmap})
+    except Exception as e:
+        print(f"Error generating roadmap: {e}")
+        return jsonify({'error': 'Failed to generate roadmap'}), 500
 
-#     if not topic:
-#         return jsonify({'error': 'Topic is required'}), 400
+@app.route('/generate-content', methods=['POST'])
+def generate_content_endpoint():
+    data = request.json
+    section = data.get('section', '')
 
-#     try:
-#         roadmap = generate_learning_roadmap(topic)
-#         return jsonify({'roadmap': roadmap})
-#     except Exception as e:
-#         print(f"Error generating roadmap: {e}")
-#         return jsonify({'error': 'Failed to generate roadmap'}), 500
+    if not section:
+        return jsonify({'error': 'Section is required'}), 400
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+    try:
+        content = generate_tutorial_article(main_topic="Roadmap Topic", sub_topic=section)
+        return jsonify({'content': content})
+    except Exception as e:
+        print(f"Error generating content: {e}")
+        return jsonify({'error': 'Failed to generate content'}), 500

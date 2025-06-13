@@ -8,11 +8,14 @@ import supabase from '../supabaseClient';
 
 function MainPage() {
   const [roadmap, setRoadmap] = useState<string[] | null>(null);
-  const [loading, setLoading] = useState(true); // loading state for roadmap
-  const [error, setError] = useState<string | null>(null); // error state for spinner timeout
-  const [showError, setShowError] = useState<boolean>(false); // fadeout effect
+  const [roadmapTopic, setRoadmapTopic] = useState<string>(''); // topic name so i can display it in the header
+  const [roadmapLoading, setRoadmapLoading] = useState(true); // SEPARETE BOTH SPINNERS
+  const [contentLoading, setContentLoading] = useState(false); // SEPARATE BOTH LOADING STATES
+  const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState<boolean>(false);
   const [loggedInUsername, setLoggedInUsername] = useState<string | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // dropdowb state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<string>('');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,7 +25,7 @@ function MainPage() {
       if (user) {
         setLoggedInUsername(user.user_metadata?.username || null);
       } else {
-        navigate('/'); // landing page if not signed in
+        navigate('/');
       }
     };
     fetchUser();
@@ -31,14 +34,14 @@ function MainPage() {
   useEffect(() => {
     const fetchRoadmapFromSupabase = async () => {
       const params = new URLSearchParams(location.search);
-      const id = params.get('id'); // fetch by ID
+      const id = params.get('id');
 
       if (id) {
         try {
-          setLoading(true);
+          setRoadmapLoading(true);
           const { data, error } = await supabase
             .from('roadmaps')
-            .select('roadmap')
+            .select('roadmap, topic')
             .eq('id', id)
             .single();
 
@@ -48,6 +51,7 @@ function MainPage() {
 
           if (data) {
             setRoadmap(data.roadmap);
+            setRoadmapTopic(data.topic); // topic name in header
           } else {
             setError('No roadmap found for this ID.');
             setShowError(true);
@@ -57,7 +61,7 @@ function MainPage() {
           setError('Failed to load the roadmap. Please try again later.');
           setShowError(true);
         } finally {
-          setLoading(false);
+          setRoadmapLoading(false);
         }
       } else {
         setError('No roadmap ID provided in the URL.');
@@ -71,19 +75,43 @@ function MainPage() {
   useEffect(() => {
     if (error) {
       setShowError(true);
-      const timer = setTimeout(() => setShowError(false), 4500); // 4.5 seconds fadeout
-      const clearError = setTimeout(() => setError(null), 5000); // 5 seconds clear
+      const fadeOutTimer = setTimeout(() => setShowError(false), 4500); // 4.5 seconds fadeout
+      const clearErrorTimer = setTimeout(() => setError(null), 5000); // 5 seconds clear
+
       return () => {
-        clearTimeout(timer);
-        clearTimeout(clearError);
+        clearTimeout(fadeOutTimer); // clear fadeout timer
+        clearTimeout(clearErrorTimer); // clear error reset timer
       };
     }
   }, [error]);
 
+  const handleContentUpdate = (section: string, content: string) => {
+    setSelectedContent(''); // clear content when user clicks on new topic/subtopic
+    setContentLoading(true); // spinner
+
+    let timeoutMessage: NodeJS.Timeout | null = null;
+
+    // if content gen takes too long
+    timeoutMessage = setTimeout(() => {
+      setSelectedContent('Content generation is taking longer than expected. Please wait...');
+    }, 15000); // 15 seconds timeout
+
+    // simulate content loading because it feels better to have a fast load than no load (I read this online in an article)
+    setTimeout(() => {
+      if (content.trim() !== '') {
+        setSelectedContent(content);
+        setContentLoading(false); // hide spinner ONLY if content is not empty (IMPORTANT)
+      } else {
+        setSelectedContent(''); // keep spinner for empty content (so it spins when generating)
+      }
+      if (timeoutMessage) clearTimeout(timeoutMessage);
+    }, 500); // half second simulated delay
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setLoggedInUsername(null);
-    navigate('/'); // redirect to landing page on sign out
+    navigate('/');
   };
 
   return (
@@ -91,13 +119,23 @@ function MainPage() {
       {/* header */}
       <header className="header">
         <h1 className="logo">Pathwise</h1>
+        <h2
+          className="topic-name text-center"
+          style={{
+            fontFamily: 'Gloria Hallelujah, cursive',
+            fontSize: '1.8rem',
+            margin: '0 auto',
+          }}
+        >
+          {roadmapTopic || 'Your Topic'}
+        </h2>
         {loggedInUsername ? (
           <div className="user-menu relative">
             <button
               className="username-display bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md focus:outline-none"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {loggedInUsername} ▼
+              {loggedInUsername} ▼  {/* dropdown arrow */}
             </button>
             {isDropdownOpen && (
               <div className="dropdown-menu absolute right-0 mt-2 bg-white border border-gray-300 rounded-md z-10">
@@ -125,11 +163,18 @@ function MainPage() {
 
       {/* main content */}
       <div className="main-content-container">
-        <Sidebar className="sidebar component" roadmap={roadmap} loading={loading} />
-        <MainContent className="component" />
+        <Sidebar
+          className="sidebar component"
+          roadmap={roadmap}
+          loading={roadmapLoading}
+          onContentUpdate={handleContentUpdate}
+          roadmapId={new URLSearchParams(location.search).get('id')}
+          topic={roadmapTopic}
+        />
+        <MainContent className="component" content={selectedContent} loading={contentLoading} />
         <div className="grid grid-rows-2 gap-1">
-          <Notes className="notes component" />
-          <Chatbot className="chatbot component" />
+          <Notes className="notes component" style={{ fontFamily: 'Gloria Hallelujah, cursive' }} />
+          <Chatbot className="chatbot component" style={{ fontFamily: 'Gloria Hallelujah, cursive' }} />
         </div>
       </div>
 

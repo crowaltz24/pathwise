@@ -18,10 +18,12 @@
     "react-dom": "^19.1.0",
     "react-draggable": "^4.4.6",
     "react-icons": "^5.5.0",
+    "react-markdown": "^8.0.7",
     "react-router-dom": "^7.6.2",
     "react-scripts": "^5.0.1",
     "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "react-syntax-highlighter": "^15.5.0"
   },
   "scripts": {
     "start": "concurrently \"npm run start-flask\" \"react-scripts start\"",

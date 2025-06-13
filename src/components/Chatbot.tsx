@@ -1,12 +1,14 @@
 import React from 'react';
 
-function Chatbot({ className }: { className?: string }) {
+function Doubts({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`p-4 bg-white border rounded shadow ${className}`}>
-      <h2 className="text-lg font-bold mb-2">Chatbot</h2>
-      <p>Ask me anything about your learning topics!</p>
+    <div className={`chatbot ${className}`} style={style}>
+      <h2 style={{ fontFamily: 'Gloria Hallelujah, cursive' }}>Doubts</h2>
+      <div style={{ fontFamily: 'Inter, sans-serif' }}>
+        <p>Ask me anything about your learning topics!</p>
+      </div>
     </div>
   );
 }
 
-export default Chatbot;
+export default Doubts;

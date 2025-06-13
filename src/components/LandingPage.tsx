@@ -32,12 +32,13 @@ function LandingPage() {
 
   useEffect(() => {
     if (error) {
-      setShowError(true); // Show the error message
-      const timer = setTimeout(() => setShowError(false), 4500); // 4.5 seconds fadeout
-      const clearError = setTimeout(() => setError(null), 5000); // 5 seconds  clear
+      setShowError(true);
+      const fadeOutTimer = setTimeout(() => setShowError(false), 4500); // 4.5 seconds fadeout
+      const clearErrorTimer = setTimeout(() => setError(null), 5000); // 5 seconds clear
+
       return () => {
-        clearTimeout(timer);
-        clearTimeout(clearError);
+        clearTimeout(fadeOutTimer); // clear fadeout timer
+        clearTimeout(clearErrorTimer); // clear error reset timer
       };
     }
   }, [error]);
@@ -71,7 +72,7 @@ function LandingPage() {
           return;
         }
 
-        // Save the generated roadmap to Supabase
+        // Save to Supabase
         const { data: userData } = await supabase.auth.getUser();
         if (!userData?.user) {
           throw new Error('User not authenticated.');

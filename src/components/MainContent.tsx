@@ -1,15 +1,65 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { okaidia } from 'react-syntax-highlighter/dist/esm/styles/prism'; // Okaidia theme for colourful code blocks
 
-function MainContent({ className }: { className?: string }) {
+const customSyntaxHighlighterStyle: any = {
+  ...okaidia,
+  'pre[class*="language-"]': {
+    ...okaidia['pre[class*="language-"]'],
+    background: '#272822', // dark bg for code blocks
+  },
+  'code[class*="language-"]': {
+    ...okaidia['code[class*="language-"]'],
+    background: '#272822',
+  },
+};
+
+function MainContent({ className, content, loading }: { className?: string; content: string; loading: boolean }) {
   return (
     <main className={`p-4 ${className}`}>
-      <h1 className="text-2xl font-bold mb-4">Topic Content</h1>
-      <p>
-        This is where our content for the selected topic will appear. For example:
-      </p>
-      <p className="mt-2">
-        <strong>Topic 1:</strong> Introduction to Python. Python is a high-level, interpreted programming language known for its simplicity, readability, and versatility. It’s used in web development, data science, automation, AI, game development, and more.
-      </p>
+      {loading ? (
+        <div className="flex flex-col justify-center items-center h-full">
+          {content.trim() === '' && <p className="text-gray-600 mb-2 italic">Generating...</p>}
+          <span
+            className="spinner"
+            style={{
+              width: '50px',
+              height: '50px',
+              borderWidth: '5px',
+            }}
+          ></span>
+        </div>
+      ) : content.trim() === '' ? (
+        <div className="flex flex-col justify-center items-center h-full">
+          <p className="text-gray-500 text-lg italic">Select a topic to get started!</p>
+        </div>
+      ) : (
+        <ReactMarkdown
+          className="markdown-content"
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              return !inline && match ? (
+                <SyntaxHighlighter
+                  style={customSyntaxHighlighterStyle} //  custom style is applied like this (rmbing for later)
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      )}
     </main>
   );
 }
