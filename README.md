@@ -1,6 +1,7 @@
 # Pathwise
 
 Pathwise is a web platform that helps users create personalized learning roadmaps for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
+Pathwise is a web platform that helps users create personalized learning roadmaps for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
 
 ## Features
 - User auth
@@ -58,13 +59,18 @@ Pathwise is a web platform that helps users create personalized learning roadmap
 
 ### Environment Configuration
 Ensure your `.env` file is configured correctly in the root directory. Below are the required keys (FOR NOW):
+Ensure your `.env` file is configured correctly in the root directory. Below are the required keys (FOR NOW):
 
 ```
 REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
 OPENROUTER_API_KEY=your_openrouter_api_key
 GOOGLE_API_KEY=your_google_api_key
 GOOGLE_CSE_ID=your_google_cse_id
+GOOGLE_API_KEY=your_google_api_key
+GOOGLE_CSE_ID=your_google_cse_id
 ```
 
 ### Notes
+- The Supabase URL is hardcoded for our project, but you can always modify `supabaseClient.ts` for if needed
+
 - The Supabase URL is hardcoded for our project, but you can always modify `supabaseClient.ts` for if needed
