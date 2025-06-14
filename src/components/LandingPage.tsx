@@ -102,6 +102,9 @@ function LandingPage() {
       } catch (error) {
         console.error('Error generating roadmap:', error);
         setError('An unexpected error occurred while generating the roadmap. Please try again later.');
+        setShowError(true);
+        setTimeout(() => setShowError(false), 4500); // fade 4.5 seconds
+        setTimeout(() => setError(null), 5000); // clear 5 seconds
       } finally {
         setLoading(false);
       }
@@ -201,6 +204,12 @@ function LandingPage() {
                   Dashboard
                 </button>
                 <button
+                  onClick={() => navigate('/settings')}
+                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Settings
+                </button>
+                <button
                   onClick={handleSignOut}
                   className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                 >
@@ -218,7 +227,7 @@ function LandingPage() {
 
       {/* main */}
       <main className="main-content">
-        <div className="description">
+        <div className="landing-description">
           <h2>Your Personalized Learning Roadmap</h2>
           <p>
             Pathwise helps you create a customized learning roadmap for any topic.
@@ -285,6 +294,7 @@ function LandingPage() {
                 placeholder="Retype Password"
                 value={retypePassword}
                 onChange={(e) => setRetypePassword(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, handleAuth)}
                 className="auth-input"
               />
             )}

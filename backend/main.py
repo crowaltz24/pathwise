@@ -176,7 +176,7 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     3. Avoid tutorial-like language such as "In this article, we will guide you...".
     4. Use direct and concise language like "You're about to learn..." or "Here, you'll explore...".
     5. Avoid unnecessary references to the user and focus on delivering actionable knowledge.
-    6. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use lists and code blocks and any other formatting and beautification if necessary.
+    6. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use lists, code blocks, maths and any other formatting and beautification if necessary.
     7. Cover essential techniques, tools, good practices, and any relevant material for mastering "{sub_topic}".
     8. Ensure the content is comprehensive, covering all relevant aspects of "{sub_topic}" and NOT beyond it.
     9. Provide further reading suggestions and resources at the end of the article, as well as links to them.

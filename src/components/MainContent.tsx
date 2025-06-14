@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { okaidia } from 'react-syntax-highlighter/dist/esm/styles/prism'; // Okaidia theme for colourful code blocks
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'; // Prism import (syntax highlighting)
+import { okaidia } from 'react-syntax-highlighter/dist/esm/styles/prism'; // COOL Okaidia style for code blocks
+import rehypeKatex from 'rehype-katex'; // math rendering
+import remarkMath from 'remark-math'; // parsing math expressions
+import 'katex/dist/katex.min.css'; // katex math styles
 
 const customSyntaxHighlighterStyle: any = {
   ...okaidia,
@@ -37,12 +40,14 @@ function MainContent({ className, content, loading }: { className?: string; cont
       ) : (
         <ReactMarkdown
           className="markdown-content"
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]} 
           components={{
             code({ node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline && match ? (
                 <SyntaxHighlighter
-                  style={customSyntaxHighlighterStyle} //  custom style is applied like this (rmbing for later)
+                  style={customSyntaxHighlighterStyle} // custom style for code blocks
                   language={match[1]}
                   PreTag="div"
                   {...props}

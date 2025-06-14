@@ -115,9 +115,9 @@ function MainPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-blue-100 to-blue-300">
+    <div className="main-page-body h-screen flex flex-col bg-gradient-to-b from-blue-100 to-blue-300">
       {/* header */}
-      <header className="header">
+      <header className="main-page-header">
         <h1 className="logo">Pathwise</h1>
         <h2
           className="topic-name text-center"
@@ -135,15 +135,27 @@ function MainPage() {
               className="username-display bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md focus:outline-none"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {loggedInUsername} ▼  {/* dropdown arrow */}
+              {loggedInUsername} ▼
             </button>
             {isDropdownOpen && (
               <div className="dropdown-menu absolute right-0 mt-2 bg-white border border-gray-300 rounded-md z-10">
+                <button
+                  onClick={() => navigate('/')}
+                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Home
+                </button>
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                 >
                   Dashboard
+                </button>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Settings
                 </button>
                 <button
                   onClick={handleSignOut}
@@ -173,7 +185,11 @@ function MainPage() {
         />
         <MainContent className="component" content={selectedContent} loading={contentLoading} />
         <div className="grid grid-rows-2 gap-1">
-          <Notes className="notes component" style={{ fontFamily: 'Gloria Hallelujah, cursive' }} />
+          <Notes
+            className="notes component"
+            style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
+            roadmapId={new URLSearchParams(location.search).get('id')!} // Pass roadmapId
+          />
           <Chatbot className="chatbot component" style={{ fontFamily: 'Gloria Hallelujah, cursive' }} />
         </div>
       </div>
