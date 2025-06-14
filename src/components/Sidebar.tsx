@@ -23,10 +23,16 @@ function Sidebar({
 
   const handleSectionClick = async (section: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+
+      if (!userId) {
+        throw new Error('User is not authenticated.');
+      }
+
+      const roadmapId = new URLSearchParams(location.search).get('id');
       if (!roadmapId) {
-        setError('Roadmap ID is missing.');
-        setShowError(true);
-        return;
+        throw new Error('Roadmap ID is missing.');
       }
 
       onContentUpdate(section, '');
@@ -54,10 +60,11 @@ function Sidebar({
       }
 
       // otherwise we generate new
-      const response = await fetch('http://127.0.0.1:5000/generate-content', {
+      const response = await fetch('https://pathwise-eg6a.onrender.com/generate-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(`openrouter_api_key_${userId}`)}`, // Include API key
         },
         body: JSON.stringify({
           section,
@@ -67,6 +74,8 @@ function Sidebar({
       });
 
       if (!response.ok) {
+        const errorDetails = await response.text();
+        console.error('Backend error details:', errorDetails);
         throw new Error('Failed to generate content.');
       }
 
