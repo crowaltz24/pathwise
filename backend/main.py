@@ -4,7 +4,7 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 load_dotenv()
@@ -15,8 +15,19 @@ OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/build", static_url_path="")
 CORS(app)  # CORS for all routes
+
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static_files(path):
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:

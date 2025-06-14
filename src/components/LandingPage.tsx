@@ -50,7 +50,7 @@ function LandingPage() {
       try {
         setLoading(true);
 
-        // Render backend URL
+        // roadmap gen
         const response = await fetch('https://pathwise-eg6a.onrender.com/generate-roadmap', {
           method: 'POST',
           headers: {
