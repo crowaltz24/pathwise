@@ -22,6 +22,9 @@ function Dashboard() {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // "+" modal
+  const [newTopic, setNewTopic] = useState(''); // Topic for new roadmap
+  const [isGenerating, setIsGenerating] = useState(false); // Spinner state for "Generate Roadmap"
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -139,6 +142,71 @@ function Dashboard() {
     return 'just now';
   };
 
+  const handleGenerateRoadmap = async () => {
+    if (!newTopic.trim()) {
+      alert('Topic cannot be empty.');
+      return;
+    }
+    setIsGenerating(true); // spinner
+    try {
+      // REUSING THE HANDLESUBMIT FUNCTION
+      const response = await fetch('http://127.0.0.1:5000/generate-roadmap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic: newTopic }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate roadmap');
+      }
+
+      const data = await response.json();
+      if (data.roadmap && typeof data.roadmap === 'object' && data.roadmap.error) {
+        alert(data.roadmap.error);
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        throw new Error('User not authenticated.');
+      }
+
+      const { data: savedRoadmap, error: insertError } = await supabase
+        .from('roadmaps')
+        .insert([
+          {
+            user_id: userData.user.id,
+            topic: newTopic,
+            roadmap: data.roadmap,
+            progress: 0,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      navigate(`/main?id=${savedRoadmap.id}`);
+    } catch (error) {
+      console.error('Error generating roadmap:', error);
+      alert('An unexpected error occurred while generating the roadmap. Please try again later.');
+    } finally {
+      setIsGenerating(false); // spinner byebye
+      setIsAddModalOpen(false);
+      setNewTopic('');
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleGenerateRoadmap();
+    }
+  };
+
   return (
     <div className="dashboard-body h-screen flex flex-col">
       {/* header */}
@@ -245,9 +313,60 @@ function Dashboard() {
             </div>
           </div>
         ))}
+        {/* + button for adding a new roadmap */}
+        <div
+          className="card bg-gray-100 p-4 rounded-lg shadow-lg flex items-center justify-center cursor-pointer hover:bg-gray-200"
+          onClick={() => setIsAddModalOpen(true)}
+        >
+          <span className="text-4xl font-bold text-gray-500">+</span>
+        </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* add radmap modal */}
+      {isAddModalOpen && (
+        <div className="modal-overlay fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center">
+          <div className="modal-content bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-bold mb-4">Add New Roadmap</h2>
+            <input
+              type="text"
+              value={newTopic}
+              onChange={(e) => setNewTopic(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter topic"
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                onClick={() => setIsAddModalOpen(false)}
+                disabled={isGenerating} // disable cancel button while generating
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 flex items-center justify-center"
+                onClick={handleGenerateRoadmap}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <span
+                    className="spinner"
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderWidth: '3px',
+                      marginRight: '8px',
+                    }}
+                  ></span>
+                ) : null}
+                {isGenerating ? 'Generating...' : 'Generate Roadmap'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* edit modal */}
       {isModalOpen && (
         <div className="modal-overlay fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center">
           <div className="modal-content bg-white p-6 rounded-lg shadow-lg w-96">
@@ -269,13 +388,13 @@ function Dashboard() {
             <div className="flex justify-end gap-2">
               <button
                 className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={() => setIsModalOpen(false)} // Close modal
+                onClick={() => setIsModalOpen(false)}
               >
                 Cancel
               </button>
               <button
                 className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={handleSave} // Save changes
+                onClick={handleSave} // save changes
               >
                 Save
               </button>

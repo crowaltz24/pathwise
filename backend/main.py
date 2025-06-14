@@ -61,8 +61,6 @@ def get_llm_enhancement(topic, existing_roadmap_str):
     else:
         prompt = base_prompt
 
-    print(f"LLM Prompt: {prompt}")
-    
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
@@ -82,7 +80,6 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         result = response.json()
 
         content = result['choices'][0]['message']['content'].strip()
-        print(f"LLM Raw Response: {content}")  # debugging
 
         try:
             parsed_response = json.loads(content)
@@ -91,21 +88,16 @@ def get_llm_enhancement(topic, existing_roadmap_str):
             elif isinstance(parsed_response, dict) and "error" in parsed_response:
                 return {"error": parsed_response["error"]}
             else:
-                print("Error: LLM response is not a valid JSON format.")
                 return {"error": "Unexpected response format from the AI. Please try again later."}
         except json.JSONDecodeError:
-            print("Error: Failed to parse the AI response as JSON.")
-            print(f"Raw Response: {content}")  # debugging
             return {"error": "Failed to parse the AI response. Please try again later."}
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error: LLM request failed - {e}")
+    except requests.exceptions.RequestException:
         return {"error": "Failed to connect to the AI service. Please try again later."}
 
 def Google_Search(query):
     """Performs a Google Custom Search and returns snippet results."""
     if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
-        print("Google Search API keys not set. Skipping web search.")
         return []
     
     search_url = "https://www.googleapis.com/customsearch/v1"
@@ -126,11 +118,9 @@ def Google_Search(query):
             for item in search_results['items']:
                 snippets.append(item.get('snippet', ''))
         return snippets
-    except requests.exceptions.RequestException as e:
-        print(f"Google Search failed: {e}")
+    except requests.exceptions.RequestException:
         return []
-    except Exception as e:
-        print(f"An unexpected error occurred during Google Search: {e}")
+    except Exception:
         return []
 
 def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=True):
@@ -141,20 +131,13 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     if not OPENROUTER_API_KEY:
         return "Error: OpenRouter API key not set."
 
-    print(f"Generating content for sub-topic: {sub_topic} (under main topic: {main_topic})...")
-
     search_context = ""
     if search_enabled and (GOOGLE_API_KEY and GOOGLE_CSE_ID):
         sub_topic = sub_topic.replace("*", "")
         search_query = f"{sub_topic} {main_topic} guide"
-        print(f"Performing web search for: {search_query}")
         snippets = Google_Search(search_query)
-        print(f"Found {len(snippets)} relevant snippets.")
-        print("Snippets:", snippets)
         if snippets:
             search_context = "\n\nRelevant web search results:\n" + "\n".join(snippets) + "\n\n"
-        else:
-            print("No useful web search results found.")
 
     prompt = f"""You are an expert educator and content creator.
 
@@ -165,10 +148,12 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     {roadmap}
 
     IMPORTANT:
-    - Do NOT preemptively generate detailed content for future sub-topics in the roadmap.
+    - Do NOT preemptively generate detailed content for any other sections or sub-topics in the roadmap. Stick to the CURRENT topic provided.
     - You may briefly mention future sub-topics to provide context, but leave their detailed content for their respective articles.
     - Focus ONLY on the sub-topic "{sub_topic}".
     - Ensure the content is specific to the main topic "{main_topic}" to avoid irrelevant information.
+    - Do not spoil sections that are yet to come.
+    - If you can't talk about the current sub-topic without referencing future sections, you may shorten the current content to a satisfactory level and mention that more details will be covered in future sections.
 
     The guide should:
     1. Start with the basics of "{sub_topic}".
@@ -180,7 +165,8 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     7. Cover essential techniques, tools, good practices, and any relevant material for mastering "{sub_topic}".
     8. Ensure the content is comprehensive, covering all relevant aspects of "{sub_topic}" and NOT beyond it.
     9. Provide further reading suggestions and resources at the end of the article, as well as links to them.
-
+    10. You may reference other sections and sub-topics in the roadmap for context, but do not include their content here. (Example: "For more on X, see the section on Y in the roadmap.")
+    11. When generating hyperlinks, use the format [text](URL) for Markdown links, but do not provide placeholder text such as "(link to relevant resource". Only provide a hyperlink if you have a specific URL to link to.
     {search_context}
 
     The article should be well-structured, informative, and engaging. Please ensure the content flows logically.
@@ -206,17 +192,11 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
         article_content = result['choices'][0]['message']['content'].strip()
         return article_content
     except requests.exceptions.Timeout:
-        print(f"Content generation for '{sub_topic}' failed: The request timed out.")
         return "Error: LLM request timed out."
-    except requests.exceptions.RequestException as e:
-        print(f"Content generation for '{sub_topic}' failed (Request Exception): {str(e)}")
-        if hasattr(e, 'response') and e.response is not None:
-            print(f"Response content: {e.response.text}")
+    except requests.exceptions.RequestException:
         return "Error: LLM request failed."
-    except Exception as e:
-        print(f"An unexpected error occurred during content generation for '{sub_topic}': {str(e)}")
+    except Exception:
         return "Error: An unexpected error occurred."
-
 
 def get_wikipedia_roadmap(topic):
     wiki = wikipediaapi.Wikipedia(
@@ -226,20 +206,13 @@ def get_wikipedia_roadmap(topic):
     )
     
     outline_page = wiki.page(f"Outline_of_{topic}")
-    print(f"Checking Wikipedia page: Outline_of_{topic}")  # page being checked
     if outline_page.exists():
-        print(f"Found outline page for {topic}")  # page exists?
-        print(f"Outline page content:\n{outline_page.text[:1000]}")
         return parse_wikipedia_page(outline_page)
     
     main_page = wiki.page(topic)
-    print(f"Checking Wikipedia page: {topic}")
     if main_page.exists():
-        print(f"Found main page for {topic}")
-        print(f"Main page content:\n{main_page.text[:1000]}")
         return parse_wikipedia_page(main_page)
     
-    print(f"No Wikipedia page found for {topic}")
     return None
 
 def parse_wikipedia_page(page):
@@ -266,17 +239,12 @@ def generate_learning_roadmap(topic):
     if not OPENROUTER_API_KEY:
         raise ValueError("OpenRouter API Key not found. Please set OPENROUTER_API_KEY environment variable.")
 
-    print(f"Generating roadmap for topic: {topic}") # debugging
-
-    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # existing roadmap not passed (i removed wikipedia for roadmap)
+    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")
 
     if not enhancements:
-        print(f"Error: LLM failed to generate a roadmap for topic: {topic}")
         return []
 
-    final_roadmap = enhancements
-    print(f"Generated roadmap: {final_roadmap}")
-    return final_roadmap
+    return enhancements
 
 @app.route('/generate-roadmap', methods=['POST'])
 def generate_roadmap_endpoint():
@@ -289,8 +257,7 @@ def generate_roadmap_endpoint():
     try:
         roadmap = generate_learning_roadmap(topic)
         return jsonify({'roadmap': roadmap})
-    except Exception as e:
-        print(f"Error generating roadmap: {e}")
+    except Exception:
         return jsonify({'error': 'Failed to generate roadmap'}), 500
 
 @app.route('/generate-content', methods=['POST'])
@@ -304,6 +271,5 @@ def generate_content_endpoint():
     try:
         content = generate_tutorial_article(main_topic="Roadmap Topic", sub_topic=section)
         return jsonify({'content': content})
-    except Exception as e:
-        print(f"Error generating content: {e}")
+    except Exception:
         return jsonify({'error': 'Failed to generate content'}), 500

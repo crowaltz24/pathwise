@@ -72,7 +72,7 @@ function Notes({ className, style, roadmapId }: NotesProps) {
         value={noteText}
         onChange={(e) => setNoteText(e.target.value)}
         placeholder="Write a note..."
-        className="w-full p-2 border rounded mb-2"
+        className="w-full p-2 border rounded mb-2 h-24 overflow-y-auto resize-none"
       />
       <button
         onClick={handleAddNote}
@@ -100,7 +100,7 @@ function Notes({ className, style, roadmapId }: NotesProps) {
                       <textarea
                         value={editingText}
                         onChange={(e) => setEditingText(e.target.value)}
-                        className="note-edit-input full-size-note"
+                        className="note-edit-input w-full h-24 p-2 border rounded resize-none"
                       />
                       <button
                         onClick={async () => {
