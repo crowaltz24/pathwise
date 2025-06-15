@@ -197,17 +197,16 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     }
 
     try:
+        print(f"Sending request to OpenRouter API with payload: {payload}")  # Log request payload
         response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=120)
         response.raise_for_status()
         result = response.json()
+        print(f"OpenRouter API Response: {result}")  # Log API response
         article_content = result['choices'][0]['message']['content'].strip()
         return article_content
-    except requests.exceptions.Timeout:
-        return "Error: LLM request timed out."
-    except requests.exceptions.RequestException:
-        return "Error: LLM request failed."
-    except Exception:
-        return "Error: An unexpected error occurred."
+    except Exception as e:
+        print(f"Error in generate_tutorial_article: {e}")  # Log the error
+        raise
 
 def get_wikipedia_roadmap(topic):
     wiki = wikipediaapi.Wikipedia(
@@ -274,16 +273,20 @@ def generate_roadmap_endpoint():
 @app.route('/generate-content', methods=['POST'])
 def generate_content_endpoint():
     data = request.json
-    section = data.get('section', '')
+    section = data.get('section', '').strip()
+    main_topic = data.get('main_topic', '').strip()
+    roadmap = data.get('roadmap', [])
 
-    if not section:
-        return jsonify({'error': 'Section is required'}), 400
+    if not section or not main_topic or not roadmap:
+        return jsonify({"error": "Section, main_topic, and roadmap are required"}), 400
 
     try:
-        content = generate_tutorial_article(main_topic="Roadmap Topic", sub_topic=section)
-        return jsonify({'content': content})
-    except Exception:
-        return jsonify({'error': 'Failed to generate content'}), 500
+        print(f"Payload received: section={section}, main_topic={main_topic}, roadmap={roadmap}")  # Log payload
+        content = generate_tutorial_article(main_topic=main_topic, sub_topic=section, roadmap=roadmap)
+        return jsonify({"content": content}), 200
+    except Exception as e:
+        print(f"Error generating content: {e}")  # Log the error
+        return jsonify({"error": f"Failed to generate content: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

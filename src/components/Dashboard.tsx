@@ -150,7 +150,7 @@ function Dashboard() {
     setIsGenerating(true); // spinner
     try {
       // REUSING THE HANDLESUBMIT FUNCTION
-      const response = await fetch('http://127.0.0.1:5000/generate-roadmap', {
+      const response = await fetch('https://pathwise-eg6a.onrender.com/generate-roadmap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
