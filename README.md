@@ -10,6 +10,7 @@ Pathwise is a web platform that helps users create personalized learning roadmap
 - Note-taking feature
 
 ### To-Do
+- Markdown Table rendering for main content window
 - Settings
 - Doubt clearing chatbot
 
