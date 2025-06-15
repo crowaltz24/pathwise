@@ -29,6 +29,11 @@ def serve_static_files(path):
     else:
         return send_from_directory(app.static_folder, 'index.html')
 
+@app.errorhandler(404)
+def not_found(e):
+    # have to serve index.html for unknown routes so that site routes correctly on refresh!
+    return send_from_directory(app.static_folder, 'index.html')
+
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:
         raise ValueError("OpenRouter API Key not found. Please set OPENROUTER_API_KEY environment variable.")
@@ -281,11 +286,11 @@ def generate_content_endpoint():
         return jsonify({"error": "Section, main_topic, and roadmap are required"}), 400
 
     try:
-        print(f"Payload received: section={section}, main_topic={main_topic}, roadmap={roadmap}")  # Log payload
+        print(f"Payload received: section={section}, main_topic={main_topic}, roadmap={roadmap}")
         content = generate_tutorial_article(main_topic=main_topic, sub_topic=section, roadmap=roadmap)
         return jsonify({"content": content}), 200
     except Exception as e:
-        print(f"Error generating content: {e}")  # Log the error
+        print(f"Error generating content: {e}")
         return jsonify({"error": f"Failed to generate content: {str(e)}"}), 500
 
 if __name__ == '__main__':
