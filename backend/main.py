@@ -15,7 +15,7 @@ OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-app = Flask(__name__, static_folder="frontend/build", static_url_path="")
+app = Flask(__name__, static_folder="build", static_url_path="")
 CORS(app)  # CORS for all routes
 
 @app.route('/')

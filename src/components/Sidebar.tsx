@@ -54,14 +54,14 @@ function Sidebar({
       }
 
       // otherwise we generate new
-      const response = await fetch('http://127.0.0.1:5000/generate-content', {
+      const response = await fetch('https://pathwise-eg6a.onrender.com/generate-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           section,
-          main_topic: roadmap?.[0] || 'Unknown Topic', 
+          main_topic: topic,
           roadmap, // pass the entire roadmap
         }),
       });
