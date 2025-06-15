@@ -9,19 +9,19 @@ Pathwise is a web platform that helps users create personalized learning roadmap
 - Dashboard functionality
 - Note-taking feature
 
-### To-Do
+## To-Do
 - Markdown Table rendering for main content window
-- Settings
-- Doubt clearing chatbot
+- Contextual doubt clearing AI chatbot (using current open content section)
+- Fix "Further Reading" section links being broken (they're currently mostly AI generated, I might route via search api for additional context)
+- Settings page
+- User API keys implementation instead of hardcoded
 
 ### Prerequisites
 - Node.js (v18 or later ideally)
 - npm
 - Python (v3.10 or later)
 
-### Installation
-
-#### Frontend
+## Installation (development)
 1. Clone the repo:
    ```bash
    git clone https://github.com/crowaltz24/pathwise.git
