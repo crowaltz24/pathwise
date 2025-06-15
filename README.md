@@ -9,7 +9,7 @@ Pathwise is a web platform that helps users create personalized learning roadmap
 - Dashboard functionality
 - Note-taking feature
 
-### In-Progress
+### To-Do
 - Settings
 - Doubt clearing chatbot
 
@@ -63,8 +63,6 @@ Ensure your `.env` file is configured correctly in the root directory. Below are
 ```
 REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
 OPENROUTER_API_KEY=your_openrouter_api_key
-GOOGLE_API_KEY=your_google_api_key
-GOOGLE_CSE_ID=your_google_cse_id
 GOOGLE_API_KEY=your_google_api_key
 GOOGLE_CSE_ID=your_google_cse_id
 ```
