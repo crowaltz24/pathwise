@@ -252,7 +252,19 @@ function LandingPage() {
 
       {/* footer */}
       <footer className="footer">
-        <p>&copy; {new Date().getFullYear()} Pathwise. All rights reserved.</p>
+        <p>
+          <a 
+            href="https://github.com/crowaltz24/pathwise" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="footer-link"
+          >
+            GitHub
+          </a>
+        </p>
+        <p>
+          &copy; {new Date().getFullYear()} Pathwise. All rights reserved.
+        </p>
       </footer>
 
       {/* login/signup */}
