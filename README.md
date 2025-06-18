@@ -13,9 +13,11 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
 
 ## To-Do
 - Markdown Table rendering for main content window
+- Trail off long titles in dashboard and main window with ellipses
 - Contextual doubt clearing AI chatbot (using current open content section)
-- Fix "Further Reading" section links being broken (they're currently mostly AI generated, I might route via search api for additional context)
+- Dark Theme?
 - Settings page
+- Fix "Further Reading" section links being broken (they're currently mostly AI generated, I might route via search api for additional context)
 - User API keys implementation instead of hardcoded
 
 ### Prerequisites
