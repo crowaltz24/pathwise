@@ -1,6 +1,7 @@
 # Pathwise
 
-Pathwise is a React/Flask/Supabase based web platform that helps users create personalized learning roadmaps for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
+Pathwise is a React/Flask/Supabase based web platform that helps users create personalized learning roadmaps (Paths) for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
+Created for Codeverse Hackathon 2025.
 
 ## Features
 - User auth
@@ -10,11 +11,11 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
 - Note-taking feature
 
 ## To-Do
-- Markdown Table rendering for main content window
 - Contextual doubt clearing AI chatbot (using current open content section)
-- Fix "Further Reading" section links being broken (they're currently mostly AI generated, I might route via search api for additional context)
-- Settings page
+- Fix "Further Reading" section links being broken (they're currently just AI generated, I gotta route via search api for additional context)
 - User API keys implementation instead of hardcoded
+- Settings page
+- Dark theme?
 
 ### Prerequisites
 - Node.js (v18 or later ideally)
@@ -58,9 +59,7 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
    `npm start` activates the venv, starts the backend Flask server as well as the React development server simulatenously.
 
 ### Environment Configuration
-Ensure your `.env` file is configured correctly in the root directory. Below are the required keys (FOR NOW):
-
-
+Ensure your `.env` file is configured correctly in the root directory as follows:
 ```
 REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
 OPENROUTER_API_KEY=your_openrouter_api_key
