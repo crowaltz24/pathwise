@@ -1,6 +1,7 @@
 # Pathwise
 
 Pathwise is a React/Flask/Supabase based web platform that helps users create personalized learning roadmaps (Paths) for any topic. Powered by AI, it generates step-by-step guides to help users master their chosen topics. Work in progress!
+
 Created for Codeverse Hackathon 2025.
 
 ## Features
