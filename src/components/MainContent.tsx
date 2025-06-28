@@ -4,6 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'; // Prism 
 import { okaidia } from 'react-syntax-highlighter/dist/esm/styles/prism'; // COOL Okaidia style for code blocks
 import rehypeKatex from 'rehype-katex'; // math rendering
 import remarkMath from 'remark-math'; // parsing math expressions
+import remarkGfm from 'remark-gfm'; // for tables
 import 'katex/dist/katex.min.css'; // katex math styles
 
 const customSyntaxHighlighterStyle: any = {
@@ -18,12 +19,62 @@ const customSyntaxHighlighterStyle: any = {
   },
 };
 
+function sanitizeMarkdown(content: string): string {
+  // clean up the markdown content to remove empty lines, code blocks etc
+  // good  for remark gfm
+  let sanitized = content.replace(/^\s*\|?\s*\|\s*\n/gm, '');
+  sanitized = sanitized.replace(/```[\w-]*\s*```/g, '');
+  sanitized = sanitized.replace(/```[\w-]*\n[\s\n]*```/g, '');
+  sanitized = sanitized.replace(/```[\w-]*\n?([\s]*)```/g, '');
+
+  return sanitized;
+}
+
 function MainContent({ className, content, loading }: { className?: string; content: string; loading: boolean }) {
+  let safeContent = typeof content === 'string' ? sanitizeMarkdown(content) : '';
+  let markdownRender;
+  try {
+    markdownRender = (
+      <ReactMarkdown
+        className="markdown-content"
+        remarkPlugins={[remarkMath, remarkGfm]}
+        rehypePlugins={[rehypeKatex]} 
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || '');
+            return !inline && match ? (
+              <SyntaxHighlighter
+                style={customSyntaxHighlighterStyle} // custom style for code blocks
+                language={match[1]}
+                PreTag="div"
+                {...props}
+              >
+                {String(children).replace(/\n$/, '')}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {safeContent}
+      </ReactMarkdown>
+    );
+  } catch (err) {
+    markdownRender = (
+      <div className="text-red-500">
+        Error rendering markdown content.
+      </div>
+    );
+  }
+
   return (
     <main className={`p-4 ${className}`}>
       {loading ? (
         <div className="flex flex-col justify-center items-center h-full">
-          {content.trim() === '' && <p className="text-gray-600 mb-2 italic">Generating...</p>}
+          {safeContent.trim() === '' && <p className="text-gray-600 mb-2 italic">Generating...</p>}
           <span
             className="spinner"
             style={{
@@ -33,37 +84,12 @@ function MainContent({ className, content, loading }: { className?: string; cont
             }}
           ></span>
         </div>
-      ) : content.trim() === '' ? (
+      ) : safeContent.trim() === '' ? (
         <div className="flex flex-col justify-center items-center h-full">
           <p className="text-gray-500 text-lg italic">Select a topic to get started!</p>
         </div>
       ) : (
-        <ReactMarkdown
-          className="markdown-content"
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]} 
-          components={{
-            code({ node, inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || '');
-              return !inline && match ? (
-                <SyntaxHighlighter
-                  style={customSyntaxHighlighterStyle} // custom style for code blocks
-                  language={match[1]}
-                  PreTag="div"
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              ) : (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              );
-            },
-          }}
-        >
-          {content}
-        </ReactMarkdown>
+        markdownRender
       )}
     </main>
   );
