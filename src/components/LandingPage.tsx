@@ -270,8 +270,11 @@ function LandingPage() {
       {/* login/signup */}
       {isModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <button onClick={handleCloseModal} className="close-modal">
+          <div className="modal-content relative">
+            <button
+              onClick={handleCloseModal}
+              className="close-modal absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center"
+            >
               &times;
             </button>
             <h2>{isSignUp ? 'Sign Up' : 'Log In'}</h2>

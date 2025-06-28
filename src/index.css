@@ -392,8 +392,8 @@ chatbot p {
 }
 
 .close-modal:hover {
-  color: #fff;
-  background-color: #555;
+  color: #ff0000;
+  background-color: #f0f0f0;
 }
 
 .toggle-auth {

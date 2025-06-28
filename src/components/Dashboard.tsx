@@ -262,14 +262,19 @@ function Dashboard() {
           <div key={roadmap.id} className="card bg-white p-4 rounded-lg shadow-lg relative">
             <h2
               className="text-lg font-bold mb-2"
-              style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
+              style={{
+                fontFamily: 'Gloria Hallelujah, cursive',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '350px', // prevent card stretching
+              }}
+              title={roadmap.topic} // full title on hover
             >
               {roadmap.topic}
             </h2>
             <div className="text-xs text-gray-500 mt-2">
-              {roadmap.last_opened && (
-                <p>Last Opened: {formatDate(roadmap.last_opened)}</p>
-              )}
+              {roadmap.last_opened && <p>Last Opened: {formatDate(roadmap.last_opened)}</p>}
               <p>Created: {formatDate(roadmap.created_at)}</p>
             </div>
             <div className="card-description">
@@ -278,7 +283,7 @@ function Dashboard() {
             <div className="actions flex justify-between mt-4 relative">
               <button
                 className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={() => handleGo(roadmap.id)} // update last_opened and navigate
+                onClick={() => handleGo(roadmap.id)}
               >
                 Go
               </button>
