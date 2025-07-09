@@ -64,7 +64,7 @@ function LandingPage() {
         }
 
         const data = await response.json();
-        console.log('Backend Response:', data);
+        // console.log('Backend Response:', data);
 
         // error handling
         if (data.roadmap && typeof data.roadmap === 'object' && data.roadmap.error) {

@@ -60,13 +60,13 @@ function Dashboard() {
 
   const handleDelete = async () => {
     if (deleteId) {
-      console.log('Attempting to delete roadmap with ID:', deleteId); // debugging
+      // console.log('Attempting to delete roadmap with ID:', deleteId); // debugging
       try {
         const { error } = await supabase.from('roadmaps').delete().eq('id', deleteId);
         if (error) {
           console.error('Error deleting roadmap:', error); // Supabase error
         } else {
-          console.log('Roadmap deleted successfully:', deleteId);
+          // console.log('Roadmap deleted successfully:', deleteId);
           setRoadmaps(roadmaps.filter((roadmap) => roadmap.id !== deleteId));
         }
       } catch (error) {
