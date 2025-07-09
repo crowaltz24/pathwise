@@ -2,6 +2,26 @@ import React, { useState } from 'react';
 import { Circle, ArrowRight } from 'lucide-react';
 import supabase from '../supabaseClient';
 
+let API_BASE_URL = '';
+
+async function fetchConfig() {
+  try {
+    const response = await fetch('/config');
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+
+    if (!API_BASE_URL) {
+      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+    }
+  } catch (error) {
+    console.error("Failed to fetch configuration from Flask:", error);
+  }
+}
+
+await (async () => {
+  await fetchConfig();
+})();
+
 function Sidebar({
   className,
   roadmap,
@@ -54,7 +74,7 @@ function Sidebar({
       }
 
       // otherwise we generate new
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-content`, {
+      const response = await fetch(`${API_BASE_URL}/generate-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
