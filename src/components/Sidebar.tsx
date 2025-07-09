@@ -54,7 +54,7 @@ function Sidebar({
       }
 
       // otherwise we generate new
-      const response = await fetch('https://pathwise-eg6a.onrender.com/generate-content', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,15 +62,21 @@ function Sidebar({
         body: JSON.stringify({
           section,
           main_topic: topic,
-          roadmap, // pass the entire roadmap
+          roadmap: roadmap || [],
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate content.');
+        const errorMessage = await response.text(); // error message from the response
+        console.error(`Error from backend: ${errorMessage}`); // logging
+        throw new Error(`Failed to generate content: ${errorMessage}`);
       }
 
       const { content } = await response.json();
+
+      if (!content) {
+        throw new Error('Content generation returned an empty response.');
+      }
 
       // save generated content to Supabase
       const updatedContent = { ...existingContent, [section]: content };

@@ -51,7 +51,7 @@ function LandingPage() {
         setLoading(true);
 
         // roadmap gen
-        const response = await fetch('https://pathwise-eg6a.onrender.com/generate-roadmap', {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-roadmap`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

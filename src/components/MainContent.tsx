@@ -74,7 +74,7 @@ function MainContent({ className, content, loading }: { className?: string; cont
     <main className={`p-4 ${className}`}>
       {loading ? (
         <div className="flex flex-col justify-center items-center h-full">
-          {safeContent.trim() === '' && <p className="text-gray-600 mb-2 italic">Generating...</p>}
+          {safeContent.trim() === '' && <p className="text-gray-600 mb-2 italic">Loading...</p>}
           <span
             className="spinner"
             style={{

@@ -8,7 +8,7 @@ interface Roadmap {
   topic: string;
   description: string | null;
   created_at: string;
-  last_opened: string | null; // last_opened property
+  last_opened: string | null; // last_opened to sort
 }
 
 function Dashboard() {
@@ -23,8 +23,8 @@ function Dashboard() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // "+" modal
-  const [newTopic, setNewTopic] = useState(''); // Topic for new roadmap
-  const [isGenerating, setIsGenerating] = useState(false); // Spinner state for "Generate Roadmap"
+  const [newTopic, setNewTopic] = useState(''); // topic for new roadmap
+  const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -150,7 +150,7 @@ function Dashboard() {
     setIsGenerating(true); // spinner
     try {
       // REUSING THE HANDLESUBMIT FUNCTION
-      const response = await fetch('https://pathwise-eg6a.onrender.com/generate-roadmap', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-roadmap`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
