@@ -4,7 +4,7 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 load_dotenv()
@@ -15,24 +15,8 @@ OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-app = Flask(__name__, static_folder="build", static_url_path="")
+app = Flask(__name__)
 CORS(app)  # CORS for all routes
-
-@app.route('/')
-def serve():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def serve_static_files(path):
-    if os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-@app.errorhandler(404)
-def not_found(e):
-    # have to serve index.html for unknown routes so that site routes correctly on refresh!
-    return send_from_directory(app.static_folder, 'index.html')
 
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:
@@ -77,6 +61,8 @@ def get_llm_enhancement(topic, existing_roadmap_str):
     else:
         prompt = base_prompt
 
+    print(f"LLM Prompt: {prompt}")
+    
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
@@ -96,6 +82,7 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         result = response.json()
 
         content = result['choices'][0]['message']['content'].strip()
+        print(f"LLM Raw Response: {content}")  # debugging
 
         try:
             parsed_response = json.loads(content)
@@ -104,16 +91,21 @@ def get_llm_enhancement(topic, existing_roadmap_str):
             elif isinstance(parsed_response, dict) and "error" in parsed_response:
                 return {"error": parsed_response["error"]}
             else:
+                print("Error: LLM response is not a valid JSON format.")
                 return {"error": "Unexpected response format from the AI. Please try again later."}
         except json.JSONDecodeError:
+            print("Error: Failed to parse the AI response as JSON.")
+            print(f"Raw Response: {content}")  # debugging
             return {"error": "Failed to parse the AI response. Please try again later."}
 
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        print(f"Error: LLM request failed - {e}")
         return {"error": "Failed to connect to the AI service. Please try again later."}
 
 def Google_Search(query):
     """Performs a Google Custom Search and returns snippet results."""
     if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
+        print("Google Search API keys not set. Skipping web search.")
         return []
     
     search_url = "https://www.googleapis.com/customsearch/v1"
@@ -134,9 +126,11 @@ def Google_Search(query):
             for item in search_results['items']:
                 snippets.append(item.get('snippet', ''))
         return snippets
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        print(f"Google Search failed: {e}")
         return []
-    except Exception:
+    except Exception as e:
+        print(f"An unexpected error occurred during Google Search: {e}")
         return []
 
 def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=True):
@@ -147,13 +141,20 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     if not OPENROUTER_API_KEY:
         return "Error: OpenRouter API key not set."
 
+    print(f"Generating content for sub-topic: {sub_topic} (under main topic: {main_topic})...")
+
     search_context = ""
     if search_enabled and (GOOGLE_API_KEY and GOOGLE_CSE_ID):
         sub_topic = sub_topic.replace("*", "")
         search_query = f"{sub_topic} {main_topic} guide"
+        print(f"Performing web search for: {search_query}")
         snippets = Google_Search(search_query)
+        print(f"Found {len(snippets)} relevant snippets.")
+        print("Snippets:", snippets)
         if snippets:
             search_context = "\n\nRelevant web search results:\n" + "\n".join(snippets) + "\n\n"
+        else:
+            print("No useful web search results found.")
 
     prompt = f"""You are an expert educator and content creator.
 
@@ -164,12 +165,10 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     {roadmap}
 
     IMPORTANT:
-    - Do NOT preemptively generate detailed content for any other sections or sub-topics in the roadmap. Stick to the CURRENT topic provided.
+    - Do NOT preemptively generate detailed content for future sub-topics in the roadmap.
     - You may briefly mention future sub-topics to provide context, but leave their detailed content for their respective articles.
     - Focus ONLY on the sub-topic "{sub_topic}".
     - Ensure the content is specific to the main topic "{main_topic}" to avoid irrelevant information.
-    - Do not spoil sections that are yet to come.
-    - If you can't talk about the current sub-topic without referencing future sections, you may shorten the current content to a satisfactory level and mention that more details will be covered in future sections.
 
     The guide should:
     1. Start with the basics of "{sub_topic}".
@@ -177,13 +176,11 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     3. Avoid tutorial-like language such as "In this article, we will guide you...".
     4. Use direct and concise language like "You're about to learn..." or "Here, you'll explore...".
     5. Avoid unnecessary references to the user and focus on delivering actionable knowledge.
-    6. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use bold, itaiics, lists, code blocks, maths and any other formatting and beautification if necessary, consistently throughout the content.
-    7. Cover essential techniques, tools, good practices, examples and any relevant material for mastering "{sub_topic}".
+    6. Be structured with headings and subheadings (using Markdown: #, ##, ###). Use lists, code blocks, maths and any other formatting and beautification if necessary.
+    7. Cover essential techniques, tools, good practices, and any relevant material for mastering "{sub_topic}".
     8. Ensure the content is comprehensive, covering all relevant aspects of "{sub_topic}" and NOT beyond it.
     9. Provide further reading suggestions and resources at the end of the article, as well as links to them.
-    10. You may reference other sections and sub-topics in the roadmap for context, but do not include their content here. (Example: "For more on X, see the section on Y in the roadmap." Avoid linking them, just mention them.)
-    11. When generating hyperlinks, use the format [text](URL) for Markdown links, but do not provide placeholder text such as "(link to relevant resource". Only provide a hyperlink if you have a specific URL to link to.
-    
+
     {search_context}
 
     The article should be well-structured, informative, and engaging. Please ensure the content flows logically.
@@ -203,16 +200,23 @@ def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=Tru
     }
 
     try:
-        print(f"Sending request to OpenRouter API with payload: {payload}")  # Log request payload
         response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=120)
         response.raise_for_status()
         result = response.json()
-        print(f"OpenRouter API Response: {result}")  # Log API response
         article_content = result['choices'][0]['message']['content'].strip()
         return article_content
+    except requests.exceptions.Timeout:
+        print(f"Content generation for '{sub_topic}' failed: The request timed out.")
+        return "Error: LLM request timed out."
+    except requests.exceptions.RequestException as e:
+        print(f"Content generation for '{sub_topic}' failed (Request Exception): {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"Response content: {e.response.text}")
+        return "Error: LLM request failed."
     except Exception as e:
-        print(f"Error in generate_tutorial_article: {e}")  # Log the error
-        raise
+        print(f"An unexpected error occurred during content generation for '{sub_topic}': {str(e)}")
+        return "Error: An unexpected error occurred."
+
 
 def get_wikipedia_roadmap(topic):
     wiki = wikipediaapi.Wikipedia(
@@ -222,13 +226,20 @@ def get_wikipedia_roadmap(topic):
     )
     
     outline_page = wiki.page(f"Outline_of_{topic}")
+    print(f"Checking Wikipedia page: Outline_of_{topic}")  # page being checked
     if outline_page.exists():
+        print(f"Found outline page for {topic}")  # page exists?
+        print(f"Outline page content:\n{outline_page.text[:1000]}")
         return parse_wikipedia_page(outline_page)
     
     main_page = wiki.page(topic)
+    print(f"Checking Wikipedia page: {topic}")
     if main_page.exists():
+        print(f"Found main page for {topic}")
+        print(f"Main page content:\n{main_page.text[:1000]}")
         return parse_wikipedia_page(main_page)
     
+    print(f"No Wikipedia page found for {topic}")
     return None
 
 def parse_wikipedia_page(page):
@@ -255,12 +266,17 @@ def generate_learning_roadmap(topic):
     if not OPENROUTER_API_KEY:
         raise ValueError("OpenRouter API Key not found. Please set OPENROUTER_API_KEY environment variable.")
 
-    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")
+    print(f"Generating roadmap for topic: {topic}") # debugging
+
+    enhancements = get_llm_enhancement(topic, existing_roadmap_str="")  # existing roadmap not passed (i removed wikipedia for roadmap)
 
     if not enhancements:
+        print(f"Error: LLM failed to generate a roadmap for topic: {topic}")
         return []
 
-    return enhancements
+    final_roadmap = enhancements
+    print(f"Generated roadmap: {final_roadmap}")
+    return final_roadmap
 
 @app.route('/generate-roadmap', methods=['POST'])
 def generate_roadmap_endpoint():
@@ -273,26 +289,61 @@ def generate_roadmap_endpoint():
     try:
         roadmap = generate_learning_roadmap(topic)
         return jsonify({'roadmap': roadmap})
-    except Exception:
+    except Exception as e:
+        print(f"Error generating roadmap: {e}")
         return jsonify({'error': 'Failed to generate roadmap'}), 500
 
 @app.route('/generate-content', methods=['POST'])
 def generate_content_endpoint():
     data = request.json
-    section = data.get('section', '').strip()
-    main_topic = data.get('main_topic', '').strip()
-    roadmap = data.get('roadmap', [])
+    section = data.get('section', '')
 
-    if not section or not main_topic or not roadmap:
-        return jsonify({"error": "Section, main_topic, and roadmap are required"}), 400
+    if not section:
+        return jsonify({'error': 'Section is required'}), 400
 
     try:
-        print(f"Payload received: section={section}, main_topic={main_topic}, roadmap={roadmap}")
-        content = generate_tutorial_article(main_topic=main_topic, sub_topic=section, roadmap=roadmap)
-        return jsonify({"content": content}), 200
+        content = generate_tutorial_article(main_topic="Roadmap Topic", sub_topic=section)
+        return jsonify({'content': content})
     except Exception as e:
         print(f"Error generating content: {e}")
-        return jsonify({"error": f"Failed to generate content: {str(e)}"}), 500
+        return jsonify({'error': 'Failed to generate content'}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+@app.route('/generate-chat-response', methods=['POST'])
+def generate_chat_response():
+    data = request.json
+    user_query = data.get('query', '')
+    context = data.get('context', '')
+
+    if not user_query or not context:
+        return jsonify({'error': 'Query and context are required'}), 400
+
+    prompt = f"""You are an expert assistant. Answer the user's question based on the following context:
+
+    Context:
+    {context}
+
+    User's question:
+    {user_query}
+
+    Provide a detailed and accurate response. Use markdown formatting for clarity, including code blocks, lists, and math rendering if necessary."""
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 1000,
+        "temperature": 0.7,
+    }
+
+    try:
+        response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        result = response.json()
+        return jsonify({'response': result['choices'][0]['message']['content'].strip()})
+    except requests.exceptions.RequestException as e:
+        print(f"Error generating chat response: {e}")
+        return jsonify({'error': 'Failed to generate chat response'}), 500

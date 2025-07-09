@@ -115,9 +115,9 @@ function MainPage() {
   };
 
   return (
-    <div className="main-page-body h-screen flex flex-col bg-gradient-to-b from-blue-100 to-blue-300">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-blue-100 to-blue-300">
       {/* header */}
-      <header className="main-page-header">
+      <header className="header">
         <h1 className="logo">Pathwise</h1>
         <h2
           className="topic-name text-center"
@@ -187,11 +187,12 @@ function MainPage() {
         <div className="grid grid-rows-2 gap-1">
           <Notes
             className="notes component"
-            roadmapId={new URLSearchParams(location.search).get('id')!}
+            roadmapId={new URLSearchParams(location.search).get('id') || ''}
           />
           <Chatbot
             className="chatbot component"
-            roadmapId={new URLSearchParams(location.search).get('id')!}
+            context={selectedContent}
+            roadmapId={new URLSearchParams(location.search).get('id') || ''}
           />
         </div>
       </div>

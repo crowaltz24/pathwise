@@ -78,12 +78,14 @@ function Notes({ className, style, roadmapId }: NotesProps) {
         onClick={handleAddNote}
         disabled={!noteText.trim()}
         className={`w-full p-2 rounded ${noteText.trim() ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
       >
         Add Note
       </button>
       <button
         onClick={() => setIsModalOpen(true)}
         className="w-full p-2 mt-2 rounded bg-black text-white hover:bg-gray-800"
+        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
       >
         See Notes
       </button>
@@ -121,13 +123,14 @@ function Notes({ className, style, roadmapId }: NotesProps) {
                           }
                         }}
                         className="note-action-button save"
+                        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
                       >
                         Save
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="note-text">{note}</p>
+                      <p className="note-text" style={{ whiteSpace: 'pre-wrap' }}>{note}</p>
                       <button
                         onClick={() => setDropdownOpenIndex(dropdownOpenIndex === index ? null : index)}
                         className="ellipsis-button"
@@ -145,6 +148,7 @@ function Notes({ className, style, roadmapId }: NotesProps) {
                           setDropdownOpenIndex(null);
                         }}
                         className="note-dropdown-item"
+                        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
                       >
                         Edit
                       </button>
@@ -154,6 +158,7 @@ function Notes({ className, style, roadmapId }: NotesProps) {
                           setDropdownOpenIndex(null);
                         }}
                         className="note-dropdown-item delete"
+                        style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
                       >
                         Delete
                       </button>
@@ -162,7 +167,11 @@ function Notes({ className, style, roadmapId }: NotesProps) {
                 </div>
               ))}
             </div>
-            <button onClick={() => setIsModalOpen(false)} className="modal-close-button">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="modal-close-button"
+              style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
+            >
               Close
             </button>
           </div>
