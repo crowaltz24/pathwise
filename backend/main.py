@@ -374,6 +374,7 @@ def generate_chat_response_prompt(context, user_query):
     Focus on resolving the user's doubt effectively. 
     Do not include introductory phrases. 
     Do not suggest more things to ask.
+    For simple phrases like "hello", "hi", "thank you", "bye", "okay" just keep your response short and sweet, no need to provide additional info. For example, "You're welcome! Any other doubts on your mind?" or "Glad I could help! Let me know if you need help with anything else." or "Hello, how can I help you today?" and nothing beyond that.
     If the query is directly answered in the context, you may provide additional information; assume the user has done their reading of the content.
     When referring to the context, you MAY direct the user back to the content they are currently viewing, "As you can see in this section, ..." or, "If you look closely,...", or "As the section "XYZ" states,..." and so on. DO NOT do this if the user is asking a follow-up question.
     If an answer isn't found in the context and the user asks, you may provide a general answer based on your knowledge, but do not direct the user to the context. You may sometimes reiterate the further reading resources provided in the context. 
