@@ -67,7 +67,7 @@ function Notes({ className, style, roadmapId }: NotesProps) {
 
   return (
     <aside className={`p-4 bg-gray-50 border rounded shadow ${className}`} style={style}>
-      <h2 className="text-lg font-bold mb-4">Notes</h2>
+      <h2 className="text-lg font-bold mb-4" style={{ fontFamily: 'Gloria Hallelujah, cursive' }}>Notes</h2>
       <textarea
         value={noteText}
         onChange={(e) => setNoteText(e.target.value)}

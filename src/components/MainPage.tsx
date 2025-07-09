@@ -187,10 +187,12 @@ function MainPage() {
         <div className="grid grid-rows-2 gap-1">
           <Notes
             className="notes component"
-            style={{ fontFamily: 'Gloria Hallelujah, cursive' }}
-            roadmapId={new URLSearchParams(location.search).get('id')!} // Pass roadmapId
+            roadmapId={new URLSearchParams(location.search).get('id')!}
           />
-          <Chatbot className="chatbot component" style={{ fontFamily: 'Gloria Hallelujah, cursive' }} />
+          <Chatbot
+            className="chatbot component"
+            roadmapId={new URLSearchParams(location.search).get('id')!}
+          />
         </div>
       </div>
 
