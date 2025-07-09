@@ -2,6 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 
+let API_BASE_URL = '';
+
+async function fetchConfig() {
+  try {
+    const response = await fetch('/config');
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+
+    if (!API_BASE_URL) {
+      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+    }
+  } catch (error) {
+    console.error("Failed to fetch configuration from Flask:", error);
+  }
+}
+
+await (async () => {
+  await fetchConfig();
+})();
+
 function LandingPage() {
   const [topic, setTopic] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,7 +71,7 @@ function LandingPage() {
         setLoading(true);
 
         // roadmap gen
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-roadmap`, {
+        const response = await fetch(`${API_BASE_URL}/generate-roadmap`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

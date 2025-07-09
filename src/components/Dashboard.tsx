@@ -11,6 +11,26 @@ interface Roadmap {
   last_opened: string | null; // last_opened to sort
 }
 
+let API_BASE_URL = '';
+
+async function fetchConfig() {
+  try {
+    const response = await fetch('/config');
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+
+    if (!API_BASE_URL) {
+      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+    }
+  } catch (error) {
+    console.error("Failed to fetch configuration from Flask:", error);
+  }
+}
+
+await (async () => {
+  await fetchConfig();
+})();
+
 function Dashboard() {
   const [username, setUsername] = useState('User');
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
@@ -149,8 +169,7 @@ function Dashboard() {
     }
     setIsGenerating(true); // spinner
     try {
-      // REUSING THE HANDLESUBMIT FUNCTION
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-roadmap`, {
+      const response = await fetch(`${API_BASE_URL}/generate-roadmap`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

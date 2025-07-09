@@ -414,6 +414,14 @@ def generate_chat_response():
         print(f"Error generating chat response: {e}")
         return jsonify({'error': 'Failed to generate chat response'}), 500
 
+@app.route('/config', methods=['GET'])
+def get_config():
+    return jsonify({
+        "SUPABASE_URL": os.getenv("REACT_APP_SUPABASE_URL"),
+        "SUPABASE_ANON_KEY": os.getenv("REACT_APP_SUPABASE_ANON_KEY"),
+        "API_BASE_URL": os.getenv("REACT_APP_API_BASE_URL")
+    })
+
 if __name__ == "__main__":
     try:
         app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)

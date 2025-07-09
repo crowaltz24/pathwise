@@ -6,6 +6,26 @@ import Notes from './Notes';
 import Chatbot from './Chatbot';
 import supabase from '../supabaseClient';
 
+let API_BASE_URL = '';
+
+async function fetchConfig() {
+  try {
+    const response = await fetch('/config');
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+
+    if (!API_BASE_URL) {
+      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+    }
+  } catch (error) {
+    console.error("Failed to fetch configuration from Flask:", error);
+  }
+}
+
+await (async () => {
+  await fetchConfig();
+})();
+
 function MainPage() {
   const [roadmap, setRoadmap] = useState<string[] | null>(null);
   const [roadmapTopic, setRoadmapTopic] = useState<string>(''); // topic name so i can display it in the header

@@ -9,6 +9,26 @@ import 'katex/dist/katex.min.css';
 import supabase from '../supabaseClient';
 import { Send } from 'lucide-react';
 
+let API_BASE_URL = '';
+
+async function fetchConfig() {
+  try {
+    const response = await fetch('/config');
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+
+    if (!API_BASE_URL) {
+      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+    }
+  } catch (error) {
+    console.error("Failed to fetch configuration from Flask:", error);
+  }
+}
+
+await (async () => {
+  await fetchConfig();
+})();
+
 function Chatbot({ className, style, context, roadmapId }: { className?: string; style?: React.CSSProperties; context?: string; roadmapId: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -96,7 +116,7 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-chat-response`, {
+      const response = await fetch(`${API_BASE_URL}/generate-chat-response`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, context: extendedContext }),
