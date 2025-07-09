@@ -15,7 +15,7 @@ OPENROUTER_MODEL = "meta-llama/llama-4-maverick"
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="build", static_url_path="/")
 CORS(app)  # CORS for all routes
 
 @app.route('/')
@@ -31,7 +31,7 @@ def serve_static_files(path):
 
 @app.errorhandler(404)
 def not_found(e):
-    # have to serve index.html for unknown routes so that site routes correctly on refresh!
+    # Serve index.html for unknown routes to handle frontend routing
     return send_from_directory(app.static_folder, 'index.html')
 
 def get_llm_enhancement(topic, existing_roadmap_str):
