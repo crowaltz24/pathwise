@@ -973,7 +973,7 @@ button:active {
 }
 
 .note-action-button.save {
-  background-color: #28a745;
+  background-color: #000000;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -984,12 +984,12 @@ button:active {
 }
 
 .note-action-button.save:hover {
-  background-color: #218838;
+  background-color: #424242;
 }
 
 .modal-close-button {
   margin-top: 20px;
-  background-color: #333;
+  background-color: #333; 
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -1172,4 +1172,92 @@ button:active {
 
 .markdown-content tr:hover {
   background-color: #e3f2fd;
+}
+
+.chat-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 25%; /* Reduced width */
+  height: 100%;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.chat-header {
+  padding: 1rem;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header h2 {
+  font-family: 'Gloria Hallelujah', cursive;
+}
+
+.chat-header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.chat-header button:hover {
+  color: #ff0000;
+}
+
+.chat-body {
+  flex-grow: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.chat-message {
+  margin-bottom: 1rem;
+}
+
+.chat-message.user {
+  text-align: right;
+  color: #007bff;
+}
+
+.chat-message.assistant {
+  text-align: left;
+  color: #333;
+}
+
+.chat-input {
+  padding: 1rem;
+  border-top: 1px solid #ddd;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.chat-input button {
+  padding: 0.5rem 1rem;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Gloria Hallelujah', cursive;
+  cursor: pointer;
+}
+
+.chat-input button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
