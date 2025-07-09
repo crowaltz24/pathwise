@@ -347,3 +347,9 @@ def generate_chat_response():
     except requests.exceptions.RequestException as e:
         print(f"Error generating chat response: {e}")
         return jsonify({'error': 'Failed to generate chat response'}), 500
+
+if __name__ == "__main__":
+    try:
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    except Exception as e:
+        print(f"Error starting the application: {e}")
