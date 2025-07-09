@@ -4,7 +4,7 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 load_dotenv()
@@ -17,6 +17,22 @@ GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
 app = Flask(__name__)
 CORS(app)  # CORS for all routes
+
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static_files(path):
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+@app.errorhandler(404)
+def not_found(e):
+    # have to serve index.html for unknown routes so that site routes correctly on refresh!
+    return send_from_directory(app.static_folder, 'index.html')
 
 def get_llm_enhancement(topic, existing_roadmap_str):
     if not OPENROUTER_API_KEY:
