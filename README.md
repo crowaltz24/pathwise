@@ -62,11 +62,20 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
 
    `npm start` activates the venv, starts the backend Flask server as well as the React development server simulatenously.
 
-8. I serve the site via the Flask server, so in your deployment you can move the `build` folder into `backend` and start from there:
+8. Build for deployment:
+   ```bash
+   npm run build
+   ```
+
+   Ouputs to `/backend` as I serve the site via the Flask server.
+
+9.  In the backend folder, run via:
    ```bash
    python main.py
    ```
-   Or just do whatever you prefer.
+
+   That should be the site, up and running on your Flask server!
+   Or if you don't like monorepos, just move the build folder, do whatever you prefer.
 
 ### Environment Configuration
 Ensure your `.env` file is configured correctly in the root directory as follows:
