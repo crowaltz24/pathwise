@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import supabase from '../supabaseClient';
 import { Send } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 let API_BASE_URL = '';
 
@@ -18,10 +19,15 @@ async function fetchConfig() {
     API_BASE_URL = config.API_BASE_URL;
 
     if (!API_BASE_URL) {
-      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+      console.error("API Base URL is missing.");
     }
   } catch (error) {
-    console.error("Failed to fetch configuration from Flask:", error);
+    if (window.location.hostname === 'localhost') {
+      console.warn("Localhost environment detected. Not using Flask config. Falling back to local environment variables.");
+      API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+    } else {
+      console.error("Failed to fetch configuration from Flask:", error);
+    }
   }
 }
 
@@ -32,10 +38,11 @@ await (async () => {
 function Chatbot({ className, style, context, roadmapId }: { className?: string; style?: React.CSSProperties; context?: string; roadmapId: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [chats, setChats] = useState<{ role: string; content: string }[]>([]);
+  const [chats, setChats] = useState<{ role: string; content: string; username?: string; section?: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalWidth, setModalWidth] = useState(33); // starter width of chat modal
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [username, setUsername] = useState<string>('You');
   const resizing = useRef(false);
   const chatBodyRef = useRef<HTMLDivElement>(null); // Ref for chat body
 
@@ -64,6 +71,11 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
   }, []);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUsername(data?.user?.user_metadata?.username || 'You'); // Default to "You" if no username is available
+    };
+
     const fetchChats = async () => {
       if (!roadmapId) return;
 
@@ -84,6 +96,7 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
       }
     };
 
+    fetchUser();
     fetchChats();
   }, [roadmapId]);
 
@@ -100,17 +113,21 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
       return;
     }
 
-    const lastMessages = chats.slice(-5).map((chat) => `${chat.role}: ${chat.content}`).join('\n'); // last 5 messages as context
-    const extendedContext = `${context?.trim() || ''}\n\nChat History:\n${lastMessages}`;
-
-    if (!context?.trim() && !lastMessages.trim()) {
-      const noContextResponse = "Go visit a section before asking doubts!"; // prevent no context 
-      setChats([...chats, { role: 'user', content: query }, { role: 'assistant', content: noContextResponse }]);
-      setQuery('');
+    if (!context?.trim()) {
+      setLoading(true); // fake load
+      setTimeout(() => {
+        const noContextResponse = "Open a section before asking a doubt!";
+        setChats([...chats, { role: 'user', content: query, username }, { role: 'assistant', content: noContextResponse }]);
+        setQuery('');
+        setLoading(false);
+      }, 250); // simulated delay
       return;
     }
 
-    const newChats = [...chats, { role: 'user', content: query }];
+    const lastMessages = chats.slice(-5).map((chat) => `${chat.role}: ${chat.content}`).join('\n'); // last 5 messages as context
+    const extendedContext = `${context}\n\nChat History:\n${lastMessages}`;
+
+    const newChats = [...chats, { role: 'user', content: query, username, section: context }];
     setChats(newChats);
     setQuery('');
     setLoading(true);
@@ -165,6 +182,29 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
       }
     } catch (error) {
       console.error('Unexpected error while clearing chat history:', error);
+    }
+  };
+
+  const handleDeleteMessage = async (index: number) => {
+    const updatedChats = [...chats];
+    updatedChats.splice(index, 1); // Remove the user message
+    if (index < updatedChats.length && updatedChats[index].role === 'assistant') {
+      updatedChats.splice(index, 1); // Remove the associated assistant response
+    }
+
+    try {
+      const { error } = await supabase
+        .from('roadmaps')
+        .update({ chats: updatedChats })
+        .eq('id', roadmapId);
+
+      if (error) {
+        console.error('Error deleting message:', error);
+      } else {
+        setChats(updatedChats);
+      }
+    } catch (error) {
+      console.error('Unexpected error while deleting message:', error);
     }
   };
 
@@ -231,7 +271,6 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
               className="text-gray-500 hover:text-black text-xl font-bold"
               style={{
                 background: 'none',
-                
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
@@ -247,14 +286,30 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
             {chats.map((chat, index) => (
               <div
                 key={index}
-                className={`chat-message p-3 rounded-lg shadow-md ${
+                className={`relative chat-message p-3 rounded-lg shadow-md ${
                   chat.role === 'user'
                     ? 'bg-blue-100 text-blue-800 self-end'
                     : 'bg-gray-200 text-gray-800 self-start'
                 }`}
               >
+                {chat.role === 'user' && (
+                  <button
+                    onClick={() => handleDeleteMessage(index)}
+                    className="absolute -left-10 top-1/2 transform -translate-y-1/2 focus:outline-none bg-transparent border-none p-0 m-0 shadow-none"
+                    title="Delete Message"
+                    style={{background: 'none', border: 'none', padding: 0, margin: 0}}
+                  >
+                    <Trash2
+                      size={16}
+                      className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+                    />
+                  </button>
+                )}
+                {chat.role === 'user' && chat.username && (
+                  <p className="text-sm font-bold text-gray-600 mb-1">{chat.username}</p>
+                )}
                 <ReactMarkdown
-                  className="markdown-content" // this is for consistent tablle styling
+                  className="markdown-content"
                   remarkPlugins={[remarkMath, remarkGfm]}
                   rehypePlugins={[rehypeKatex]}
                   components={{
@@ -274,6 +329,11 @@ function Chatbot({ className, style, context, roadmapId }: { className?: string;
                 >
                   {chat.content}
                 </ReactMarkdown>
+                {chat.role === 'user' && chat.section && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    <i>Asked in</i>: <strong>{chat.section.split('\n')[0].replace(/^#+\s*/, '')}</strong>
+                  </p>
+                )}
               </div>
             ))}
             {loading && <div className="loading-spinner self-center">Generating...</div>}
