@@ -11,10 +11,16 @@ async function fetchConfig() {
     SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      console.error("Supabase URL or anon key is missing. Please ensure your Flask server is configured correctly.");
+      console.error("Supabase URL or anon key is missing.");
     }
   } catch (error) {
-    console.error("Failed to fetch configuration from Flask:", error);
+    if (window.location.hostname === 'localhost') {
+      console.warn("Localhost environment detected. Not using Flask config. Falling back to local environment variables.");
+      SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || '';
+      SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+    } else {
+      console.error("Failed to fetch configuration from Flask:", error);
+    }
   }
 }
 

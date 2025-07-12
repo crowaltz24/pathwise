@@ -11,10 +11,15 @@ async function fetchConfig() {
     API_BASE_URL = config.API_BASE_URL;
 
     if (!API_BASE_URL) {
-      console.error("API Base URL is missing. Please ensure your Flask server is configured correctly.");
+      console.error("API Base URL is missing.");
     }
   } catch (error) {
-    console.error("Failed to fetch configuration from Flask:", error);
+    if (window.location.hostname === 'localhost') {
+      console.warn("Localhost environment detected. Not using Flask config. Falling back to local environment variables.");
+      API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+    } else {
+      console.error("Failed to fetch configuration from Flask:", error);
+    }
   }
 }
 
