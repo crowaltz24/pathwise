@@ -8,11 +8,6 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sys
 
-# Force UTF-8 encoding for the entire application
-if sys.version_info < (3, 7):
-    raise RuntimeError("Python 3.7 or higher is required.")
-os.environ["PYTHONIOENCODING"] = "utf-8"
-
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -125,7 +120,6 @@ def get_llm_enhancement(topic, existing_roadmap_str):
         return {"error": "Failed to connect to the AI service. Please try again later."}
 
 def Google_Search(query):
-    """Performs a Google Custom Search and returns snippet results."""
     if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
         print("Google Search API keys not set. Skipping web search.")
         return []
@@ -164,10 +158,6 @@ def clean_text(text):
     return text.encode('ascii', errors='ignore').decode('ascii')
 
 def generate_tutorial_article(main_topic, sub_topic, roadmap, search_enabled=True):
-    """
-    Generates a learning guide-style article for a given sub-topic.
-    Optionally incorporates web search results for freshness.
-    """
     if not OPENROUTER_API_KEY:
         return "Error: OpenRouter API key not set."
 
@@ -293,9 +283,6 @@ def parse_wikipedia_page(page):
     return roadmap
 
 def generate_learning_roadmap(topic):
-    """
-    Generates a learning roadmap for the given topic using the LLM.
-    """
     if not OPENROUTER_API_KEY:
         raise ValueError("OpenRouter API Key not found. Please set OPENROUTER_API_KEY environment variable.")
 
@@ -375,7 +362,7 @@ def generate_chat_response_prompt(context, user_query):
     Do not include introductory phrases. 
     Do not suggest more things to ask.
     For simple phrases like "hello", "hi", "thank you", "bye", "okay" just keep your response short and sweet, no need to provide additional info. For example, "You're welcome! Any other doubts on your mind?" or "Glad I could help! Let me know if you need help with anything else." or "Hello, how can I help you today?" and nothing beyond that.
-    If the query is directly answered in the context, you may provide additional information; assume the user has done their reading of the content.
+    If the query is directly answered in the context, do NOT just repeat what is mentioned in the context. You may provide additional information; assume the user has done their reading of the content.
     When referring to the context, you MAY direct the user back to the content they are currently viewing, "As you can see in this section, ..." or, "If you look closely,...", or "As the section "XYZ" states,..." and so on. DO NOT do this if the user is asking a follow-up question.
     If an answer isn't found in the context and the user asks, you may provide a general answer based on your knowledge, but do not direct the user to the context. You may sometimes reiterate the further reading resources provided in the context. 
     Whenever referencing a section, bold it.
