@@ -78,7 +78,7 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
    Or if you don't like monorepos, just move the build folder, do whatever you prefer.
 
 ### Environment Configuration
-Ensure your `.env` file is configured correctly in the root directory as follows:
+Ensure your `.env` or your deployment environment variables are configured as follows:
 ```
 PYTHONIOENCODING=utf-8
 
