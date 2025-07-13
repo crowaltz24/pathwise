@@ -42,6 +42,8 @@ function LandingPage() {
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [error, setError] = useState<string | null>(null);
   const [showError, setShowError] = useState<boolean>(false); // fadeout effect
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -165,6 +167,29 @@ function LandingPage() {
         setMessageType('success');
         setIsModalOpen(false);
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        setMessage(error.message);
+        setMessageType('error');
+      } else {
+        setMessage('An unexpected error occurred.');
+        setMessageType('error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setLoading(true);
+    setMessage('');
+    setMessageType('');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
+      if (error) throw error;
+      setMessage('Password reset email sent! Please check your inbox.');
+      setMessageType('success');
+      setIsForgotPassword(false);
     } catch (error) {
       if (error instanceof Error) {
         setMessage(error.message);
@@ -313,53 +338,77 @@ function LandingPage() {
               >
                 &times;
               </button>
-              <h2>{isSignUp ? 'Sign Up' : 'Log In'}</h2>
-              {isSignUp && (
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="auth-input"
-                />
+              <h2>{isForgotPassword ? 'Reset Password' : isSignUp ? 'Sign Up' : 'Log In'}</h2>
+              {isForgotPassword ? (
+                <>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, handlePasswordReset)}
+                    className="auth-input"
+                  />
+                  <button onClick={handlePasswordReset} className="auth-btn" disabled={loading}>
+                    {loading ? <span className="spinner"></span> : 'Send Reset Email'}
+                  </button>
+                  <p onClick={() => setIsForgotPassword(false)} className="toggle-auth">
+                    Back to Login
+                  </p>
+                </>
+              ) : (
+                <>
+                  {isSignUp && (
+                    <input
+                      type="text"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="auth-input"
+                    />
+                  )}
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, handleAuth)}
+                    className="auth-input"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, handleAuth)}
+                    className="auth-input"
+                  />
+                  {isSignUp && (
+                    <input
+                      type="password"
+                      placeholder="Retype Password"
+                      value={retypePassword}
+                      onChange={(e) => setRetypePassword(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, handleAuth)}
+                      className="auth-input"
+                    />
+                  )}
+                  <button onClick={handleAuth} className="auth-btn" disabled={loading}>
+                    {loading ? <span className="spinner"></span> : isSignUp ? 'Sign Up' : 'Log In'}
+                  </button>
+                  <p onClick={() => setIsForgotPassword(true)} className="toggle-auth">
+                    Forgot Password?
+                  </p>
+                  <p onClick={toggleAuthMode} className="toggle-auth">
+                    {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
+                  </p>
+                </>
               )}
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, handleAuth)}
-                className="auth-input"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, handleAuth)}
-                className="auth-input"
-              />
-              {isSignUp && (
-                <input
-                  type="password"
-                  placeholder="Retype Password"
-                  value={retypePassword}
-                  onChange={(e) => setRetypePassword(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, handleAuth)}
-                  className="auth-input"
-                />
-              )}
-              <button onClick={handleAuth} className="auth-btn" disabled={loading}>
-                {loading ? <span className="spinner"></span> : isSignUp ? 'Sign Up' : 'Log In'}
-              </button>
               {message && (
                 <p className={`auth-message ${messageType}`}>
                   {messageType === 'success' ? '✓' : '✗'} {message}
                 </p>
               )}
-              <p onClick={toggleAuthMode} className="toggle-auth">
-                {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
-              </p>
             </div>
           </div>
         )}
