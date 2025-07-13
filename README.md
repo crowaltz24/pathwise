@@ -69,7 +69,7 @@ Pathwise is a React/Flask/Supabase based web platform that helps users create pe
 
    This also moves the build folder to `/backend` as I serve the site via the Flask server.
 
-9.  In the backend folder, run via:
+9. In the backend folder, run via:
    ```bash
    python main.py
    ```
