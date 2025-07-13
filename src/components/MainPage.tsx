@@ -143,7 +143,9 @@ function MainPage() {
     <div className="h-screen flex flex-col bg-blue-200">
       {/* header */}
       <header className="header">
-        <h1 className="logo">Pathwise</h1>
+        {/* <h1 className="logo">Pathwise</h1> */}
+        <img src="\pathwise_img.png" alt="" 
+          className="w-60 h-12 rounded-full object-cover"/>
         <h2
           className="topic-name text-center"
           style={{

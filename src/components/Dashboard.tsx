@@ -235,7 +235,9 @@ function Dashboard() {
     <div className="dashboard-body h-screen flex flex-col">
       {/* header */}
       <header className="dashboard-header fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 bg-white shadow-md z-50">
-        <h1 className="logo text-2xl font-bold">Pathwise</h1>
+        {/* <h1 className="logo text-2xl font-bold">Pathwise</h1> */}
+        <img src="\pathwise_img.png" alt="" onClick={()=> navigate('/')}
+          className="w-60 h-16 rounded-full object-cover" />
         <h2
           className="text-center"
           style={{

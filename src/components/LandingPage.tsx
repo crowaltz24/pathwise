@@ -208,163 +208,176 @@ function LandingPage() {
   };
 
   return (
-    <div className="landing-page">
-      {/* header */}
-      <header className="header">
-        <h1 className="logo">Pathwise</h1>
-        {loggedInUsername ? (
-          <div className="user-menu relative">
-            <button
-              className="username-display bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md focus:outline-none"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {loggedInUsername} ▼
+    <div className='flex flex-col md:flex-row items-center justify-center min-h-screen bg-white'>
+      <div className="w-full  md:w-1/2 h-screen overflow-hidden">
+        <img
+          src="/Landing_img.jpg"
+          alt="Example"
+          className="w-full h-full rounded-r-[200px] object-cover "
+        />
+      </div>
+
+      <div className="landing-page w-full md:w-1/2 text-white rounded-lg">
+        {/* header */}
+        <header className='flex items-center justify-between p-4'>
+          {/* <h1 className="logo">Pathwise</h1> */}
+          <img src="\pathwise_img.png" alt="" 
+          className="w-60 h-16 rounded-full object-cover"/>
+          {loggedInUsername ? (
+            <div className="user-menu relative">
+              <button
+                className="username-display bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md focus:outline-none"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                {loggedInUsername} ▼
+              </button>
+              {isDropdownOpen && (
+                <div className="dropdown-menu absolute right-0 mt-2 bg-white border border-gray-300 rounded-md z-10">
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Settings
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="get-started-btn" onClick={() => setIsModalOpen(true)}>
+              Get Started
             </button>
-            {isDropdownOpen && (
-              <div className="dropdown-menu absolute right-0 mt-2 bg-white border border-gray-300 rounded-md z-10">
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => navigate('/settings')}
-                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Settings
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="dropdown-item block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Sign Out
-                </button>
-              </div>
-            )}
+          )}
+        </header>
+
+        {/* main */}
+        <main className="main-content">
+          <div className="landing-description">
+            <h2>Your Personalized Learning Roadmap</h2>
+            <p>
+              Pathwise helps you create a customized learning roadmap for any topic.
+              Enter your topic below, and let our AI generate a step-by-step guide to
+              help you master it.
+            </p>
           </div>
-        ) : (
-          <button className="get-started-btn" onClick={() => setIsModalOpen(true)}>
-            Get Started
-          </button>
-        )}
-      </header>
-
-      {/* main */}
-      <main className="main-content">
-        <div className="landing-description">
-          <h2>Your Personalized Learning Roadmap</h2>
-          <p>
-            Pathwise helps you create a customized learning roadmap for any topic.
-            Enter your topic below, and let our AI generate a step-by-step guide to
-            help you master it.
-          </p>
-        </div>
-        <div className="input-container">
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, handleSubmit)}
-            placeholder="Enter your topic..."
-            className="topic-input"
-          />
-          <button onClick={handleSubmit} className="generate-btn" disabled={loading}>
-            {loading ? <span className="spinner"></span> : 'Generate Roadmap'}
-          </button>
-        </div>
-      </main>
-
-      {/* footer */}
-      <footer className="footer">
-        <p>
-          <a 
-            href="https://github.com/crowaltz24/pathwise" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="footer-link"
-          >
-            GitHub
-          </a>
-        </p>
-        <p>
-          &copy; {new Date().getFullYear()} Pathwise. All rights reserved.
-        </p>
-      </footer>
-
-      {/* login/signup */}
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content relative">
-            <button
-              onClick={handleCloseModal}
-              className="close-modal absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center"
-            >
-              &times;
+          <div className="input-container">
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, handleSubmit)}
+              placeholder="Enter your topic..."
+              className="topic-input"
+            />
+            <button onClick={handleSubmit} className="generate-btn" disabled={loading}>
+              {loading ? <span className="spinner"></span> : 'Generate Roadmap'}
             </button>
-            <h2>{isSignUp ? 'Sign Up' : 'Log In'}</h2>
-            {isSignUp && (
+          </div>
+        </main>
+
+        {/* footer */}
+        <footer className="footer">
+          <p>
+            <a
+              href="https://github.com/crowaltz24/pathwise"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-link"
+            >
+              GitHub
+            </a>
+          </p>
+          <p className='text-gray-600'>
+            &copy; {new Date().getFullYear()} Pathwise. All rights reserved.
+          </p>
+        </footer>
+
+        {/* login/signup */}
+        {isModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-content relative">
+              <button
+                onClick={handleCloseModal}
+                className="close-modal absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-black rounded-full w-8 h-8 flex items-center justify-center"
+              >
+                &times;
+              </button>
+              <h2>{isSignUp ? 'Sign Up' : 'Log In'}</h2>
+              {isSignUp && (
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="auth-input"
+                />
+              )}
               <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="auth-input"
-              />
-            )}
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, handleAuth)}
-              className="auth-input"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, handleAuth)}
-              className="auth-input"
-            />
-            {isSignUp && (
-              <input
-                type="password"
-                placeholder="Retype Password"
-                value={retypePassword}
-                onChange={(e) => setRetypePassword(e.target.value)}
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, handleAuth)}
                 className="auth-input"
               />
-            )}
-            <button onClick={handleAuth} className="auth-btn" disabled={loading}>
-              {loading ? <span className="spinner"></span> : isSignUp ? 'Sign Up' : 'Log In'}
-            </button>
-            {message && (
-              <p className={`auth-message ${messageType}`}>
-                {messageType === 'success' ? '✓' : '✗'} {message}
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, handleAuth)}
+                className="auth-input"
+              />
+              {isSignUp && (
+                <input
+                  type="password"
+                  placeholder="Retype Password"
+                  value={retypePassword}
+                  onChange={(e) => setRetypePassword(e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, handleAuth)}
+                  className="auth-input"
+                />
+              )}
+              <button onClick={handleAuth} className="auth-btn" disabled={loading}>
+                {loading ? <span className="spinner"></span> : isSignUp ? 'Sign Up' : 'Log In'}
+              </button>
+              {message && (
+                <p className={`auth-message ${messageType}`}>
+                  {messageType === 'success' ? '✓' : '✗'} {message}
+                </p>
+              )}
+              <p onClick={toggleAuthMode} className="toggle-auth">
+                {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
               </p>
-            )}
-            <p onClick={toggleAuthMode} className="toggle-auth">
-              {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
-            </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ERROR POPUPPPP (i really like this one i think its kinda neat) */}
-      {error && (
-        <div
-          className={`absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-md transition-opacity duration-500 ${
-            showError ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{ zIndex: 1000 }}
-        >
-          {error} Please try again.
-        </div>
-      )}
+        {/* ERROR POPUPPPP (i really like this one i think its kinda neat) */}
+        {error && (
+          <div
+            className={`absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-md transition-opacity duration-500 ${showError ? 'opacity-100' : 'opacity-0'
+              }`}
+            style={{ zIndex: 1000 }}
+          >
+            {error} Please try again.
+          </div>
+        )}
+
+      </div>
     </div>
+
   );
 }
 
